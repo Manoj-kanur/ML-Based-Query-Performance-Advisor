@@ -170,3 +170,4 @@
 
 > **Speaker Note**:
 > *"To conclude, our system is fully tested with 11 passing test suites, pushed to GitHub, and ready for deployment on Vercel and Render. Now, we will walk you through the live dashboard demonstration."*
+

@@ -8,6 +8,8 @@ services:
     envVars:
       - key: PYTHON_VERSION
         value: 3.11.0
+      - key: MONGODB_URI
+        sync: false
 
   # Next.js Frontend Dashboard
   - type: web
@@ -22,4 +24,5 @@ services:
           type: web
           name: ml-query-advisor-api
           property: host
-
+      - key: MONGODB_URI
+        sync: false

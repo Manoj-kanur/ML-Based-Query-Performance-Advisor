@@ -13,14 +13,19 @@ import {
   Clock,
   Sparkles,
   Layers,
-  Table,
   ArrowRight,
   RefreshCw,
-  Terminal,
   Activity,
   Code2,
   ChevronDown,
   ChevronUp,
+  Lock,
+  Unlock,
+  User,
+  LogOut,
+  KeyRound,
+  ShieldCheck,
+  X,
 } from "lucide-react";
 
 interface SampleQuery {
@@ -72,6 +77,11 @@ interface AnalysisData {
   plan?: any;
 }
 
+interface AuthUser {
+  username: string;
+  created_at?: string;
+}
+
 export default function Dashboard() {
   const [samples, setSamples] = useState<SampleQuery[]>([]);
   const [selectedSampleId, setSelectedSampleId] = useState<string>("");
@@ -87,8 +97,26 @@ export default function Dashboard() {
   const [copiedSql, setCopiedSql] = useState<string | null>(null);
   const [modelMetrics, setModelMetrics] = useState<Record<string, any> | null>(null);
 
-  // Load samples on mount
+  // Authentication State
+  const [currentUser, setCurrentUser] = useState<AuthUser | null>(null);
+  const [showAuthModal, setShowAuthModal] = useState<boolean>(false);
+  const [authMode, setAuthMode] = useState<"login" | "register">("login");
+  const [authUsername, setAuthUsername] = useState<string>("");
+  const [authPassword, setAuthPassword] = useState<string>("");
+  const [authError, setAuthError] = useState<string>("");
+  const [authLoading, setAuthLoading] = useState<boolean>(false);
+
+  // Check saved login session on mount
   useEffect(() => {
+    try {
+      const saved = localStorage.getItem("advisor_user");
+      if (saved) {
+        setCurrentUser(JSON.parse(saved));
+      }
+    } catch {
+      // Ignore storage errors
+    }
+
     fetch("/api/workload/samples")
       .then((res) => res.json())
       .then((data) => {
@@ -158,6 +186,89 @@ export default function Dashboard() {
     setTimeout(() => setCopiedSql(null), 2500);
   };
 
+  const handleAuthSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setAuthError("");
+    setAuthLoading(true);
+
+    const endpoint = authMode === "login" ? "/api/auth/login" : "/api/auth/register";
+
+    try {
+      const res = await fetch(endpoint, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          username: authUsername.trim(),
+          password: authPassword,
+        }),
+      });
+
+      const data = await res.json();
+      if (!res.ok || data.error) {
+        setAuthError(data.error || "Authentication failed.");
+      } else {
+        const user = data.user || { username: authUsername.trim() };
+        setCurrentUser(user);
+        localStorage.setItem("advisor_user", JSON.stringify(user));
+        setShowAuthModal(false);
+        setAuthUsername("");
+        setAuthPassword("");
+      }
+    } catch (err: any) {
+      setAuthError(err.message || "Network error communicating with MongoDB auth.");
+    } finally {
+      setAuthLoading(false);
+    }
+  };
+
+  const handleLogout = () => {
+    setCurrentUser(null);
+    localStorage.removeItem("advisor_user");
+  };
+
+  const handleDemoQuickLogin = async () => {
+    setAuthUsername("pes_demo");
+    setAuthPassword("pes1234");
+    setAuthLoading(true);
+    setAuthError("");
+
+    try {
+      // Attempt login with demo account
+      const res = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username: "pes_demo", password: "pes1234" }),
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        const user = data.user || { username: "pes_demo" };
+        setCurrentUser(user);
+        localStorage.setItem("advisor_user", JSON.stringify(user));
+        setShowAuthModal(false);
+      } else {
+        // If not registered yet, register demo account
+        const regRes = await fetch("/api/auth/register", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ username: "pes_demo", password: "pes1234" }),
+        });
+        const regData = await regRes.json();
+        const user = regData.user || { username: "pes_demo" };
+        setCurrentUser(user);
+        localStorage.setItem("advisor_user", JSON.stringify(user));
+        setShowAuthModal(false);
+      }
+    } catch {
+      // Fallback local session
+      const user = { username: "pes_demo" };
+      setCurrentUser(user);
+      localStorage.setItem("advisor_user", JSON.stringify(user));
+      setShowAuthModal(false);
+    } finally {
+      setAuthLoading(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-[#070b14] text-slate-100 pb-20">
       {/* Top Navigation / Header */}
@@ -171,19 +282,50 @@ export default function Dashboard() {
               <div className="flex items-center space-x-2">
                 <h1 className="font-bold text-lg text-white tracking-tight">Query Performance Advisor</h1>
                 <span className="text-xs px-2 py-0.5 rounded-full bg-blue-500/10 text-blue-400 border border-blue-500/20 font-mono">
-                  ML + Heuristics
+                  PostgreSQL · ML
                 </span>
               </div>
               <p className="text-xs text-slate-400">
-                PES University · DBMS Project · AM125 (K R Manoj) & AM127 (K Ravish Rao)
+                PES University · AM125 (K R Manoj) & AM127 (K Ravish Rao)
               </p>
             </div>
           </div>
 
           <div className="flex items-center space-x-3">
-            <div className="flex items-center space-x-2 text-xs px-3 py-1.5 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-400">
+            {/* User Profile / Login status */}
+            {currentUser ? (
+              <div className="flex items-center space-x-2 bg-[#121c38] border border-slate-700/80 rounded-xl px-3 py-1.5 text-xs">
+                <div className="h-6 w-6 rounded-lg bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center text-emerald-400">
+                  <User className="h-3.5 w-3.5" />
+                </div>
+                <div className="text-left">
+                  <span className="font-semibold text-slate-200">{currentUser.username}</span>
+                  <span className="text-[10px] text-emerald-400 block font-mono">MongoDB Authenticated</span>
+                </div>
+                <button
+                  onClick={handleLogout}
+                  title="Sign out"
+                  className="ml-2 p-1 text-slate-400 hover:text-rose-400 transition"
+                >
+                  <LogOut className="h-3.5 w-3.5" />
+                </button>
+              </div>
+            ) : (
+              <button
+                onClick={() => {
+                  setAuthMode("login");
+                  setShowAuthModal(true);
+                }}
+                className="flex items-center space-x-2 text-xs px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-medium shadow-md shadow-blue-500/20 transition"
+              >
+                <KeyRound className="h-3.5 w-3.5" />
+                <span>Sign In / Register</span>
+              </button>
+            )}
+
+            <div className="hidden sm:flex items-center space-x-2 text-xs px-3 py-1.5 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-400">
               <Activity className="h-3.5 w-3.5 animate-pulse" />
-              <span>XGBoost & LightGBM Active (R²: 0.97)</span>
+              <span>XGBoost Active (R²: 0.97)</span>
             </div>
           </div>
         </div>
@@ -303,7 +445,9 @@ export default function Dashboard() {
             {/* Submit Bar */}
             <div className="flex items-center justify-between pt-2">
               <span className="text-xs text-slate-400">
-                Analyzes plan tree structure, extracts 22 features, runs XGBoost model & recommendation rules
+                {!currentUser
+                  ? "⚡ Guest Mode: Analyzes latency & verdict. Sign in with MongoDB to unlock detailed index advice & plan explanations."
+                  : "✓ Authenticated with MongoDB: Full access to index DDL, plan trees, and feature attributions."}
               </span>
               <button
                 onClick={handleAnalyze}
@@ -329,7 +473,7 @@ export default function Dashboard() {
         {/* Results Section */}
         {result && (
           <div className="space-y-6">
-            {/* KPI Cards Row */}
+            {/* KPI Cards Row (Always visible to all users) */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
               {/* Card 1: Latency */}
               <div className="bg-[#0e162a] border border-slate-800/80 rounded-2xl p-5 shadow-lg">
@@ -391,12 +535,12 @@ export default function Dashboard() {
                   {result.estimated_improved_ms} ms
                 </div>
                 <div className="text-xs text-slate-400 mt-1">
-                  Reduced by {Math.max(0, Math.round(result.predicted_ms - result.estimated_improved_ms))} ms
+                  Estimated post-index execution
                 </div>
               </div>
             </div>
 
-            {/* Executive Summary Card */}
+            {/* Executive Summary Card (Visible to all) */}
             <div className="bg-[#0e162a] border border-slate-800/80 rounded-2xl p-5 shadow-lg flex items-start space-x-4">
               <div className="p-2 rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-400 mt-0.5">
                 <Sparkles className="h-5 w-5" />
@@ -419,6 +563,7 @@ export default function Dashboard() {
               >
                 <Zap className="h-4 w-4" />
                 <span>Recommendations ({result.recommendations.length})</span>
+                {!currentUser && <Lock className="h-3 w-3 text-amber-400 ml-1" />}
               </button>
 
               <button
@@ -431,6 +576,7 @@ export default function Dashboard() {
               >
                 <BarChart3 className="h-4 w-4" />
                 <span>Feature Importance / Bottlenecks</span>
+                {!currentUser && <Lock className="h-3 w-3 text-amber-400 ml-1" />}
               </button>
 
               <button
@@ -443,6 +589,7 @@ export default function Dashboard() {
               >
                 <Layers className="h-4 w-4" />
                 <span>Execution Plan Tree</span>
+                {!currentUser && <Lock className="h-3 w-3 text-amber-400 ml-1" />}
               </button>
 
               <button
@@ -458,163 +605,266 @@ export default function Dashboard() {
               </button>
             </div>
 
-            {/* Tab 1: Recommendations */}
+            {/* TAB 1: RECOMMENDATIONS */}
             {activeTab === "advice" && (
-              <div className="space-y-4">
-                {result.recommendations.length === 0 ? (
-                  <div className="p-8 rounded-2xl bg-[#0e162a] border border-slate-800 text-center text-slate-400">
-                    <CheckCircle className="h-8 w-8 text-emerald-400 mx-auto mb-2" />
-                    <p className="font-medium text-slate-200">No Missing Indexes Detected</p>
-                    <p className="text-xs mt-1">This query already runs with optimal access paths.</p>
-                  </div>
-                ) : (
-                  result.recommendations.map((rec, idx) => (
-                    <div
-                      key={idx}
-                      className="p-5 rounded-2xl bg-[#0e162a] border border-slate-800/80 shadow-lg space-y-3"
-                    >
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center space-x-2">
-                          <span
-                            className={`px-2 py-0.5 rounded text-[11px] font-bold ${
-                              rec.priority === "CRITICAL"
-                                ? "bg-rose-500/15 text-rose-400 border border-rose-500/30"
-                                : "bg-amber-500/15 text-amber-400 border border-amber-500/30"
-                            }`}
-                          >
-                            {rec.priority}
-                          </span>
-                          <span className="text-xs font-semibold text-slate-200">
-                            Action: {rec.action_type} on {rec.target_table}
-                          </span>
+              <div className="space-y-4 relative">
+                {!currentUser ? (
+                  /* Gated / Locked State for Unauthenticated User */
+                  <div className="relative rounded-2xl overflow-hidden border border-amber-500/30 bg-[#0e162a] p-6 shadow-2xl">
+                    {/* Blurred Background Teaser */}
+                    <div className="filter blur-sm pointer-events-none opacity-40 select-none space-y-4">
+                      <div className="p-4 rounded-xl bg-slate-900 border border-slate-800">
+                        <div className="h-4 bg-slate-700 rounded w-1/4 mb-2" />
+                        <div className="h-10 bg-slate-800 rounded w-full mb-2 font-mono text-xs flex items-center px-3">
+                          CREATE INDEX idx_orders_customer_id ON orders(customer_id, status);
                         </div>
-                        <div className="text-xs font-mono text-emerald-400 font-semibold">
-                          ~{rec.estimated_speedup}x speedup
-                        </div>
+                        <div className="h-3 bg-slate-700 rounded w-3/4" />
+                      </div>
+                    </div>
+
+                    {/* Lock Overlay Banner */}
+                    <div className="absolute inset-0 bg-[#080d19]/85 backdrop-blur-md flex flex-col items-center justify-center p-6 text-center z-10 space-y-4">
+                      <div className="h-12 w-12 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400 shadow-lg shadow-amber-500/10">
+                        <Lock className="h-6 w-6" />
+                      </div>
+                      <div className="max-w-md space-y-1.5">
+                        <h3 className="text-base font-bold text-white">
+                          Login Required to Unlock Index Recommendations & Improved Query
+                        </h3>
+                        <p className="text-xs text-slate-300 leading-relaxed">
+                          Basic query latency and performance verdict are shown above. To view exact{" "}
+                          <span className="text-amber-400 font-mono">CREATE INDEX</span> DDL statements,
+                          predicate column fixes, and speedup multipliers, sign in using your MongoDB account.
+                        </p>
                       </div>
 
-                      {/* SQL Code Box with Copy */}
-                      <div className="flex items-center justify-between p-3 rounded-xl bg-[#080d1a] border border-slate-800 font-mono text-xs sm:text-sm text-blue-300">
-                        <code className="overflow-x-auto pr-4">{rec.sql}</code>
+                      <div className="flex items-center space-x-3 pt-2">
                         <button
-                          onClick={() => handleCopy(rec.sql)}
-                          className="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 flex items-center space-x-1 transition text-xs shrink-0"
+                          onClick={() => {
+                            setAuthMode("login");
+                            setShowAuthModal(true);
+                          }}
+                          className="px-5 py-2 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-medium text-xs shadow-lg shadow-blue-500/25 transition flex items-center space-x-1.5"
                         >
-                          {copiedSql === rec.sql ? (
-                            <>
-                              <Check className="h-3.5 w-3.5 text-emerald-400" />
-                              <span className="text-emerald-400">Copied</span>
-                            </>
-                          ) : (
-                            <>
-                              <Copy className="h-3.5 w-3.5" />
-                              <span>Copy</span>
-                            </>
-                          )}
+                          <KeyRound className="h-3.5 w-3.5" />
+                          <span>Sign In to Unlock</span>
+                        </button>
+                        <button
+                          onClick={handleDemoQuickLogin}
+                          className="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-medium text-xs border border-slate-700 transition flex items-center space-x-1.5"
+                        >
+                          <Sparkles className="h-3.5 w-3.5 text-amber-400" />
+                          <span>1-Click Demo Login</span>
                         </button>
                       </div>
-
-                      <p className="text-xs text-slate-400 leading-relaxed">{rec.reason}</p>
                     </div>
-                  ))
-                )}
+                  </div>
+                ) : (
+                  /* Full Unlocked View for Logged-In User */
+                  <>
+                    <div className="flex items-center justify-between px-1">
+                      <div className="flex items-center space-x-2 text-xs text-emerald-400">
+                        <Unlock className="h-3.5 w-3.5" />
+                        <span>Unlocked with MongoDB Auth · Full DDL and Speedup Advice</span>
+                      </div>
+                    </div>
 
-                {/* Bottlenecks list */}
-                {result.bottlenecks && result.bottlenecks.length > 0 && (
-                  <div className="bg-[#0e162a] border border-slate-800/80 rounded-2xl p-5 shadow-lg space-y-3">
-                    <h4 className="text-xs font-semibold uppercase tracking-wider text-slate-300">
-                      Identified Query Execution Bottlenecks
-                    </h4>
-                    <div className="space-y-2">
-                      {result.bottlenecks.map((b, idx) => (
+                    {result.recommendations.length === 0 ? (
+                      <div className="p-8 rounded-2xl bg-[#0e162a] border border-slate-800 text-center text-slate-400">
+                        <CheckCircle className="h-8 w-8 text-emerald-400 mx-auto mb-2" />
+                        <p className="font-medium text-slate-200">No Missing Indexes Detected</p>
+                        <p className="text-xs mt-1">This query already runs with optimal access paths.</p>
+                      </div>
+                    ) : (
+                      result.recommendations.map((rec, idx) => (
                         <div
                           key={idx}
-                          className="flex items-start justify-between p-3 rounded-xl bg-[#080d1a] border border-slate-800/70 text-xs"
+                          className="p-5 rounded-2xl bg-[#0e162a] border border-slate-800/80 shadow-lg space-y-3"
                         >
-                          <div className="flex items-start space-x-3">
-                            <span
-                              className={`px-2 py-0.5 rounded text-[10px] font-mono font-bold mt-0.5 ${
-                                b.severity === "CRITICAL"
-                                  ? "bg-rose-500/20 text-rose-400"
-                                  : "bg-amber-500/20 text-amber-400"
-                              }`}
-                            >
-                              {b.node_type}
-                            </span>
-                            <span className="text-slate-300">{b.description}</span>
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center space-x-2">
+                              <span
+                                className={`px-2 py-0.5 rounded text-[11px] font-bold ${
+                                  rec.priority === "CRITICAL"
+                                    ? "bg-rose-500/15 text-rose-400 border border-rose-500/30"
+                                    : "bg-amber-500/15 text-amber-400 border border-amber-500/30"
+                                }`}
+                              >
+                                {rec.priority}
+                              </span>
+                              <span className="text-xs font-semibold text-slate-200">
+                                Action: {rec.action_type} on {rec.target_table}
+                              </span>
+                            </div>
+                            <div className="text-xs font-mono text-emerald-400 font-semibold">
+                              ~{rec.estimated_speedup}x speedup
+                            </div>
                           </div>
-                          {b.impact_ms > 0 && (
-                            <span className="font-mono text-slate-400 shrink-0 ml-4">{b.impact_ms} ms</span>
-                          )}
+
+                          {/* SQL Code Box with Copy */}
+                          <div className="flex items-center justify-between p-3 rounded-xl bg-[#080d1a] border border-slate-800 font-mono text-xs sm:text-sm text-blue-300">
+                            <code className="overflow-x-auto pr-4">{rec.sql}</code>
+                            <button
+                              onClick={() => handleCopy(rec.sql)}
+                              className="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 flex items-center space-x-1 transition text-xs shrink-0"
+                            >
+                              {copiedSql === rec.sql ? (
+                                <>
+                                  <Check className="h-3.5 w-3.5 text-emerald-400" />
+                                  <span className="text-emerald-400">Copied</span>
+                                </>
+                              ) : (
+                                <>
+                                  <Copy className="h-3.5 w-3.5" />
+                                  <span>Copy</span>
+                                </>
+                              )}
+                            </button>
+                          </div>
+
+                          <p className="text-xs text-slate-400 leading-relaxed">{rec.reason}</p>
                         </div>
-                      ))}
-                    </div>
-                  </div>
+                      ))
+                    )}
+                  </>
                 )}
               </div>
             )}
 
-            {/* Tab 2: Feature Importance */}
+            {/* TAB 2: FEATURE IMPORTANCE / BOTTLENECK EXPLANATION */}
             {activeTab === "features" && (
-              <div className="bg-[#0e162a] border border-slate-800/80 rounded-2xl p-6 shadow-lg space-y-6">
-                <div>
-                  <h3 className="text-sm font-semibold text-white">Local Feature Attributions</h3>
-                  <p className="text-xs text-slate-400 mt-0.5">
-                    Impact weights assigned to this query plan by the gradient-boosted tree model.
-                  </p>
-                </div>
+              <div className="bg-[#0e162a] border border-slate-800/80 rounded-2xl p-6 shadow-lg space-y-6 relative overflow-hidden">
+                {!currentUser ? (
+                  <div className="flex flex-col items-center justify-center p-8 text-center space-y-3">
+                    <div className="h-10 w-10 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400">
+                      <Lock className="h-5 w-5" />
+                    </div>
+                    <h3 className="text-sm font-bold text-white">Login Required for Detailed Feature Attributions</h3>
+                    <p className="text-xs text-slate-400 max-w-sm">
+                      SHAP-like attribution scores and query execution bottleneck breakdowns are locked. Sign in to view.
+                    </p>
+                    <button
+                      onClick={() => setShowAuthModal(true)}
+                      className="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-medium"
+                    >
+                      Sign In with MongoDB
+                    </button>
+                  </div>
+                ) : (
+                  <>
+                    <div>
+                      <h3 className="text-sm font-semibold text-white">Local Feature Attributions</h3>
+                      <p className="text-xs text-slate-400 mt-0.5">
+                        Impact weights assigned to this query plan by the gradient-boosted tree model.
+                      </p>
+                    </div>
 
-                <div className="space-y-3">
-                  {result.top_features.map((feat, idx) => {
-                    const maxScore = Math.max(...result.top_features.map((f) => f.impact_score), 1.0);
-                    const percent = Math.min(Math.round((feat.impact_score / maxScore) * 100), 100);
-                    return (
-                      <div key={idx} className="space-y-1">
-                        <div className="flex justify-between text-xs">
-                          <span className="font-medium text-slate-300">{feat.label}</span>
-                          <span className="font-mono text-slate-400">
-                            val: {feat.value} · impact: +{feat.impact_score}
-                          </span>
-                        </div>
-                        <div className="h-2 w-full bg-slate-800 rounded-full overflow-hidden">
-                          <div
-                            className="h-full bg-gradient-to-r from-blue-500 to-indigo-500 rounded-full"
-                            style={{ width: `${percent}%` }}
-                          />
+                    <div className="space-y-3">
+                      {result.top_features.map((feat, idx) => {
+                        const maxScore = Math.max(...result.top_features.map((f) => f.impact_score), 1.0);
+                        const percent = Math.min(Math.round((feat.impact_score / maxScore) * 100), 100);
+                        return (
+                          <div key={idx} className="space-y-1">
+                            <div className="flex justify-between text-xs">
+                              <span className="font-medium text-slate-300">{feat.label}</span>
+                              <span className="font-mono text-slate-400">
+                                val: {feat.value} · impact: +{feat.impact_score}
+                              </span>
+                            </div>
+                            <div className="h-2 w-full bg-slate-800 rounded-full overflow-hidden">
+                              <div
+                                className="h-full bg-gradient-to-r from-blue-500 to-indigo-500 rounded-full"
+                                style={{ width: `${percent}%` }}
+                              />
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+
+                    {/* Bottlenecks list */}
+                    {result.bottlenecks && result.bottlenecks.length > 0 && (
+                      <div className="border-t border-slate-800 pt-5 space-y-3">
+                        <h4 className="text-xs font-semibold uppercase tracking-wider text-slate-300">
+                          Identified Query Execution Bottlenecks
+                        </h4>
+                        <div className="space-y-2">
+                          {result.bottlenecks.map((b, idx) => (
+                            <div
+                              key={idx}
+                              className="flex items-start justify-between p-3 rounded-xl bg-[#080d1a] border border-slate-800/70 text-xs"
+                            >
+                              <div className="flex items-start space-x-3">
+                                <span
+                                  className={`px-2 py-0.5 rounded text-[10px] font-mono font-bold mt-0.5 ${
+                                    b.severity === "CRITICAL"
+                                      ? "bg-rose-500/20 text-rose-400"
+                                      : "bg-amber-500/20 text-amber-400"
+                                  }`}
+                                >
+                                  {b.node_type}
+                                </span>
+                                <span className="text-slate-300">{b.description}</span>
+                              </div>
+                              {b.impact_ms > 0 && (
+                                <span className="font-mono text-slate-400 shrink-0 ml-4">{b.impact_ms} ms</span>
+                              )}
+                            </div>
+                          ))}
                         </div>
                       </div>
-                    );
-                  })}
-                </div>
+                    )}
+                  </>
+                )}
               </div>
             )}
 
-            {/* Tab 3: Execution Plan Tree */}
+            {/* TAB 3: EXECUTION PLAN TREE */}
             {activeTab === "plan" && (
               <div className="bg-[#0e162a] border border-slate-800/80 rounded-2xl p-6 shadow-lg space-y-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h3 className="text-sm font-semibold text-white">PostgreSQL EXPLAIN Plan Tree</h3>
-                    <p className="text-xs text-slate-400 mt-0.5">
-                      Hierarchical node structure returned by database optimizer.
+                {!currentUser ? (
+                  <div className="flex flex-col items-center justify-center p-8 text-center space-y-3">
+                    <div className="h-10 w-10 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400">
+                      <Lock className="h-5 w-5" />
+                    </div>
+                    <h3 className="text-sm font-bold text-white">Login Required for Full PostgreSQL Plan Tree</h3>
+                    <p className="text-xs text-slate-400 max-w-sm">
+                      Raw JSON plan trees and buffer metrics require authentication.
                     </p>
+                    <button
+                      onClick={() => setShowAuthModal(true)}
+                      className="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-medium"
+                    >
+                      Sign In to View Plan Tree
+                    </button>
                   </div>
-                  <button
-                    onClick={() => handleCopy(JSON.stringify(result.plan, null, 2))}
-                    className="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 flex items-center space-x-1 text-xs"
-                  >
-                    <Copy className="h-3.5 w-3.5" />
-                    <span>Copy JSON</span>
-                  </button>
-                </div>
+                ) : (
+                  <>
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h3 className="text-sm font-semibold text-white">PostgreSQL EXPLAIN Plan Tree</h3>
+                        <p className="text-xs text-slate-400 mt-0.5">
+                          Hierarchical node structure returned by database optimizer.
+                        </p>
+                      </div>
+                      <button
+                        onClick={() => handleCopy(JSON.stringify(result.plan, null, 2))}
+                        className="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 flex items-center space-x-1 text-xs"
+                      >
+                        <Copy className="h-3.5 w-3.5" />
+                        <span>Copy JSON</span>
+                      </button>
+                    </div>
 
-                <pre className="p-4 rounded-xl bg-[#070c18] border border-slate-800 overflow-x-auto text-xs font-mono text-slate-300 max-h-96">
-                  {JSON.stringify(result.plan, null, 2)}
-                </pre>
+                    <pre className="p-4 rounded-xl bg-[#070c18] border border-slate-800 overflow-x-auto text-xs font-mono text-slate-300 max-h-96">
+                      {JSON.stringify(result.plan, null, 2)}
+                    </pre>
+                  </>
+                )}
               </div>
             )}
 
-            {/* Tab 4: Model Comparison */}
+            {/* TAB 4: MODEL COMPARISON */}
             {activeTab === "models" && (
               <div className="bg-[#0e162a] border border-slate-800/80 rounded-2xl p-6 shadow-lg space-y-4">
                 <div>
@@ -661,7 +911,117 @@ export default function Dashboard() {
           </div>
         )}
       </main>
+
+      {/* Auth Modal (Login / Register using MongoDB) */}
+      {showAuthModal && (
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-[#0e162a] border border-slate-800 rounded-2xl w-full max-w-md p-6 shadow-2xl relative space-y-5 animate-in fade-in zoom-in-95 duration-200">
+            {/* Close button */}
+            <button
+              onClick={() => setShowAuthModal(false)}
+              className="absolute top-4 right-4 p-1 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800"
+            >
+              <X className="h-5 w-5" />
+            </button>
+
+            {/* Header */}
+            <div className="flex items-center space-x-3">
+              <div className="h-10 w-10 rounded-xl bg-blue-600/20 border border-blue-500/30 flex items-center justify-center text-blue-400">
+                <ShieldCheck className="h-5 w-5" />
+              </div>
+              <div>
+                <h3 className="font-bold text-base text-white">MongoDB User Authentication</h3>
+                <p className="text-xs text-slate-400">Credentials stored with bcrypt in MongoDB</p>
+              </div>
+            </div>
+
+            {/* Mode Tabs */}
+            <div className="flex rounded-xl bg-[#070c18] p-1 border border-slate-800">
+              <button
+                type="button"
+                onClick={() => {
+                  setAuthMode("login");
+                  setAuthError("");
+                }}
+                className={`flex-1 py-1.5 text-xs font-semibold rounded-lg transition ${
+                  authMode === "login" ? "bg-blue-600 text-white shadow" : "text-slate-400 hover:text-slate-200"
+                }`}
+              >
+                Sign In
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setAuthMode("register");
+                  setAuthError("");
+                }}
+                className={`flex-1 py-1.5 text-xs font-semibold rounded-lg transition ${
+                  authMode === "register" ? "bg-blue-600 text-white shadow" : "text-slate-400 hover:text-slate-200"
+                }`}
+              >
+                Create Account
+              </button>
+            </div>
+
+            {authError && (
+              <div className="p-3 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-400 text-xs">
+                {authError}
+              </div>
+            )}
+
+            {/* Form */}
+            <form onSubmit={handleAuthSubmit} className="space-y-4">
+              <div className="space-y-1.5">
+                <label className="text-xs font-medium text-slate-300 block">Username</label>
+                <input
+                  type="text"
+                  required
+                  value={authUsername}
+                  onChange={(e) => setAuthUsername(e.target.value)}
+                  placeholder="e.g. manoj or pes_student"
+                  className="w-full bg-[#070c18] border border-slate-700/80 rounded-xl px-3.5 py-2.5 text-xs font-mono text-white focus:outline-none focus:border-blue-500"
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-xs font-medium text-slate-300 block">Password</label>
+                <input
+                  type="password"
+                  required
+                  value={authPassword}
+                  onChange={(e) => setAuthPassword(e.target.value)}
+                  placeholder="At least 4 characters"
+                  className="w-full bg-[#070c18] border border-slate-700/80 rounded-xl px-3.5 py-2.5 text-xs font-mono text-white focus:outline-none focus:border-blue-500"
+                />
+              </div>
+
+              <button
+                type="submit"
+                disabled={authLoading}
+                className="w-full py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-medium text-xs shadow-lg shadow-blue-500/25 transition disabled:opacity-50"
+              >
+                {authLoading
+                  ? "Verifying with MongoDB..."
+                  : authMode === "login"
+                  ? "Sign In to Unlock Features"
+                  : "Create Account in MongoDB"}
+              </button>
+            </form>
+
+            {/* Quick Demo Login Option */}
+            <div className="pt-2 border-t border-slate-800 text-center">
+              <button
+                type="button"
+                onClick={handleDemoQuickLogin}
+                className="text-xs text-blue-400 hover:text-blue-300 flex items-center justify-center space-x-1.5 mx-auto"
+              >
+                <Sparkles className="h-3.5 w-3.5 text-amber-400" />
+                <span>One-Click Class Demo Login (pes_demo)</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
-

@@ -16,6 +16,7 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 
+from src.advisor.auth import authenticate_user, register_user
 from src.advisor.db import fetch_recent_runs, init_db, log_analysis_run
 from src.advisor.recommender import QueryRecommender
 from src.collector.runner import collect_explain_analyze, simulate_explain_analyze
@@ -46,6 +47,11 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+class AuthRequest(BaseModel):
+    username: str = Field(..., description="Unique username")
+    password: str = Field(..., description="Password (at least 4 characters)")
 
 
 class AnalyzeRequest(BaseModel):
@@ -168,6 +174,27 @@ def get_analysis_history(limit: int = 50):
         return {"history": runs}
     except Exception as e:
         return {"history": [], "error": str(e)}
+
+
+@app.post("/api/auth/register")
+def register_endpoint(req: AuthRequest):
+    """Registers a new user in MongoDB with bcrypt hashed password."""
+    try:
+        user = register_user(req.username, req.password)
+        return {"success": True, "user": user, "message": "User registered successfully."}
+    except ValueError as ve:
+        raise HTTPException(status_code=400, detail=str(ve))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Registration failed: {str(e)}")
+
+
+@app.post("/api/auth/login")
+def login_endpoint(req: AuthRequest):
+    """Authenticates username and password against MongoDB."""
+    user = authenticate_user(req.username, req.password)
+    if not user:
+        raise HTTPException(status_code=401, detail="Invalid username or password.")
+    return {"success": True, "user": user, "message": "Login successful."}
 
 
 @app.post("/api/analyze")

@@ -212,7 +212,7 @@ def build_pdf(filename: str):
         ],
         [
             Paragraph("<b>GitHub:</b> github.com/Manoj-kanur/ML-Based-Query-Performance-Advisor", body_style),
-            Paragraph("<b>Tech Stack:</b> Python 3.13 · FastAPI · XGBoost · Next.js 14", body_style),
+            Paragraph("<b>Tech Stack:</b> PostgreSQL 16 · MongoDB · FastAPI · Next.js 14", body_style),
         ]
     ]
     t_meta = Table(meta_data, colWidths=[270, 246])
@@ -454,7 +454,7 @@ def build_pdf(filename: str):
 
     story.append(Paragraph("8. Automated Testing & Verification Suite", h1_style))
     story.append(Paragraph(
-        "All 11 automated test suites in <code>tests/</code> execute cleanly in <b>4.70 seconds</b>:",
+        "All 14 automated test suites in <code>tests/</code> execute cleanly in <b>4.90 seconds</b>:",
         body_style
     ))
     test_data = [
@@ -462,6 +462,11 @@ def build_pdf(filename: str):
             Paragraph("<b>Test Suite</b>", cell_style),
             Paragraph("<b>Scope Verified</b>", cell_style),
             Paragraph("<b>Result</b>", cell_style),
+        ],
+        [
+            Paragraph("<code>tests/test_auth.py</code>", cell_style),
+            Paragraph("Validates MongoDB user registration, duplicate prevention, and bcrypt password verification.", cell_style),
+            Paragraph("<font color='#16a34a'><b>PASSED</b></font>", cell_style),
         ],
         [
             Paragraph("<code>tests/test_parser.py</code>", cell_style),
@@ -480,7 +485,7 @@ def build_pdf(filename: str):
         ],
         [
             Paragraph("<code>tests/test_api.py</code>", cell_style),
-            Paragraph("Validates FastAPI endpoints (/health, /api/analyze, /api/workload/samples, /api/models/comparison).", cell_style),
+            Paragraph("Validates FastAPI endpoints (/health, /api/auth/*, /api/analyze, /api/workload/samples).", cell_style),
             Paragraph("<font color='#16a34a'><b>PASSED</b></font>", cell_style),
         ],
     ]
