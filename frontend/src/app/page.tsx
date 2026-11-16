@@ -26,6 +26,7 @@ import {
   KeyRound,
   ShieldCheck,
   X,
+  FileCode2,
 } from "lucide-react";
 
 interface SampleQuery {
@@ -90,14 +91,14 @@ export default function Dashboard() {
   const [showConnStr, setShowConnStr] = useState<boolean>(false);
   const [showRawPlan, setShowRawPlan] = useState<boolean>(false);
   const [rawPlanInput, setRawPlanInput] = useState<string>("");
-  const [activeTab, setActiveTab] = useState<"advice" | "features" | "plan" | "models">("advice");
+  const [activeTab, setActiveTab] = useState<"advice" | "improved" | "features" | "plan" | "models">("advice");
 
   const [loading, setLoading] = useState<boolean>(false);
   const [result, setResult] = useState<AnalysisData | null>(null);
   const [copiedSql, setCopiedSql] = useState<string | null>(null);
   const [modelMetrics, setModelMetrics] = useState<Record<string, any> | null>(null);
 
-  // Authentication State
+  // Authentication State (MongoDB)
   const [currentUser, setCurrentUser] = useState<AuthUser | null>(null);
   const [showAuthModal, setShowAuthModal] = useState<boolean>(false);
   const [authMode, setAuthMode] = useState<"login" | "register">("login");
@@ -233,7 +234,6 @@ export default function Dashboard() {
     setAuthError("");
 
     try {
-      // Attempt login with demo account
       const res = await fetch("/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -246,7 +246,6 @@ export default function Dashboard() {
         localStorage.setItem("advisor_user", JSON.stringify(user));
         setShowAuthModal(false);
       } else {
-        // If not registered yet, register demo account
         const regRes = await fetch("/api/auth/register", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -259,7 +258,6 @@ export default function Dashboard() {
         setShowAuthModal(false);
       }
     } catch {
-      // Fallback local session
       const user = { username: "pes_demo" };
       setCurrentUser(user);
       localStorage.setItem("advisor_user", JSON.stringify(user));
@@ -270,42 +268,46 @@ export default function Dashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-[#070b14] text-slate-100 pb-20">
+    <div className="min-h-screen bg-[#170515] text-[#DDE3E8] pb-24 selection:bg-[#EAA000] selection:text-[#170515]">
       {/* Top Navigation / Header */}
-      <header className="border-b border-slate-800 bg-[#0c1324]/80 backdrop-blur sticky top-0 z-50">
+      <header className="border-b border-[#4D1546] bg-[#22081F]/90 backdrop-blur sticky top-0 z-50 shadow-md">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
           <div className="flex items-center space-x-3">
-            <div className="h-10 w-10 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-500 flex items-center justify-center shadow-lg shadow-blue-500/20">
-              <Database className="h-5 w-5 text-white" />
+            <div className="h-10 w-10 rounded-xl bg-gradient-to-tr from-[#3A0F34] to-[#EAA000] p-0.5 shadow-lg shadow-[#3A0F34]/50">
+              <div className="h-full w-full bg-[#22081F] rounded-[10px] flex items-center justify-center">
+                <Database className="h-5 w-5 text-[#EAA000]" />
+              </div>
             </div>
             <div>
               <div className="flex items-center space-x-2">
-                <h1 className="font-bold text-lg text-white tracking-tight">Query Performance Advisor</h1>
-                <span className="text-xs px-2 py-0.5 rounded-full bg-blue-500/10 text-blue-400 border border-blue-500/20 font-mono">
-                  PostgreSQL · ML
+                <h1 className="font-bold text-base sm:text-lg text-[#DDE3E8] tracking-tight">
+                  Query Performance Advisor
+                </h1>
+                <span className="text-[11px] px-2 py-0.5 rounded-full bg-[#EAA000]/15 text-[#EAA000] border border-[#EAA000]/30 font-mono font-semibold">
+                  ML + MongoDB
                 </span>
               </div>
-              <p className="text-xs text-slate-400">
+              <p className="text-[11px] text-[#A0B0BE]">
                 PES University · AM125 (K R Manoj) & AM127 (K Ravish Rao)
               </p>
             </div>
           </div>
 
           <div className="flex items-center space-x-3">
-            {/* User Profile / Login status */}
+            {/* MongoDB User Profile / Sign in CTA */}
             {currentUser ? (
-              <div className="flex items-center space-x-2 bg-[#121c38] border border-slate-700/80 rounded-xl px-3 py-1.5 text-xs">
-                <div className="h-6 w-6 rounded-lg bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center text-emerald-400">
+              <div className="flex items-center space-x-2 bg-[#2B0B27] border border-[#4D1546] rounded-xl px-3 py-1.5 text-xs shadow-inner">
+                <div className="h-6 w-6 rounded-lg bg-[#EAA000]/20 border border-[#EAA000]/40 flex items-center justify-center text-[#EAA000]">
                   <User className="h-3.5 w-3.5" />
                 </div>
                 <div className="text-left">
-                  <span className="font-semibold text-slate-200">{currentUser.username}</span>
-                  <span className="text-[10px] text-emerald-400 block font-mono">MongoDB Authenticated</span>
+                  <span className="font-semibold text-[#DDE3E8]">{currentUser.username}</span>
+                  <span className="text-[10px] text-[#EAA000] block font-mono">MongoDB Active</span>
                 </div>
                 <button
                   onClick={handleLogout}
                   title="Sign out"
-                  className="ml-2 p-1 text-slate-400 hover:text-rose-400 transition"
+                  className="ml-2 p-1 text-[#A0B0BE] hover:text-[#EAA000] transition"
                 >
                   <LogOut className="h-3.5 w-3.5" />
                 </button>
@@ -316,16 +318,16 @@ export default function Dashboard() {
                   setAuthMode("login");
                   setShowAuthModal(true);
                 }}
-                className="flex items-center space-x-2 text-xs px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-medium shadow-md shadow-blue-500/20 transition"
+                className="flex items-center space-x-2 text-xs px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-[#EAA000] to-[#FFB526] hover:from-[#FFB526] hover:to-[#EAA000] text-[#170515] font-bold shadow-md shadow-[#EAA000]/20 transition"
               >
-                <KeyRound className="h-3.5 w-3.5" />
+                <KeyRound className="h-3.5 w-3.5 text-[#170515]" />
                 <span>Sign In / Register</span>
               </button>
             )}
 
-            <div className="hidden sm:flex items-center space-x-2 text-xs px-3 py-1.5 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-400">
-              <Activity className="h-3.5 w-3.5 animate-pulse" />
-              <span>XGBoost Active (R²: 0.97)</span>
+            <div className="hidden sm:flex items-center space-x-2 text-xs px-3 py-1.5 rounded-lg bg-[#3A0F34]/80 border border-[#631C5B] text-[#DDE3E8]">
+              <Activity className="h-3.5 w-3.5 text-[#EAA000] animate-pulse" />
+              <span>XGBoost (R²: 0.97)</span>
             </div>
           </div>
         </div>
@@ -333,15 +335,15 @@ export default function Dashboard() {
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 space-y-8">
         {/* Sample Workloads Carousel / Pills */}
-        <div className="bg-[#0e162a] border border-slate-800/80 rounded-2xl p-4 shadow-xl">
+        <div className="bg-[#22081F] border border-[#4D1546] rounded-2xl p-4 shadow-xl">
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center space-x-2">
-              <Sparkles className="h-4 w-4 text-amber-400" />
-              <span className="text-xs font-semibold uppercase tracking-wider text-slate-300">
+              <Sparkles className="h-4 w-4 text-[#EAA000]" />
+              <span className="text-xs font-bold uppercase tracking-wider text-[#DDE3E8]">
                 Quick Benchmark Workloads (TPC-H & E-Commerce)
               </span>
             </div>
-            <span className="text-xs text-slate-400">Click any preset to test instantly</span>
+            <span className="text-xs text-[#A0B0BE]">Click any preset to test instantly</span>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-2.5">
@@ -354,20 +356,22 @@ export default function Dashboard() {
                   onClick={() => handleSelectSample(s)}
                   className={`text-left p-3 rounded-xl border transition-all text-xs flex flex-col justify-between ${
                     isSelected
-                      ? "bg-blue-600/15 border-blue-500 text-white shadow-lg shadow-blue-500/10 ring-1 ring-blue-500"
-                      : "bg-[#131d36]/70 border-slate-800/80 text-slate-300 hover:border-slate-700 hover:bg-[#15203b]"
+                      ? "bg-[#3A0F34] border-[#EAA000] text-[#DDE3E8] shadow-lg shadow-[#EAA000]/15 ring-1 ring-[#EAA000]"
+                      : "bg-[#280A24]/70 border-[#4D1546] text-[#A0B0BE] hover:border-[#631C5B] hover:text-[#DDE3E8] hover:bg-[#2F0C2A]"
                   }`}
                 >
-                  <div className="font-medium line-clamp-1 mb-1">{s.title.split("—")[0]}</div>
+                  <div className="font-semibold line-clamp-1 mb-1">{s.title.split("—")[0]}</div>
                   <div className="flex items-center justify-between text-[11px] mt-2">
                     <span
-                      className={`px-1.5 py-0.5 rounded font-mono ${
-                        isSlow ? "bg-rose-500/15 text-rose-400" : "bg-emerald-500/15 text-emerald-400"
+                      className={`px-1.5 py-0.5 rounded font-mono font-medium ${
+                        isSlow
+                          ? "bg-rose-500/20 text-rose-300 border border-rose-500/30"
+                          : "bg-emerald-500/20 text-emerald-300 border border-emerald-500/30"
                       }`}
                     >
                       {s.difficulty}
                     </span>
-                    <ArrowRight className="h-3 w-3 text-slate-400 opacity-60" />
+                    <ArrowRight className="h-3 w-3 text-[#A0B0BE] opacity-70" />
                   </div>
                 </button>
               );
@@ -376,97 +380,95 @@ export default function Dashboard() {
         </div>
 
         {/* Query Input Section */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-          <div className="lg:col-span-12 bg-[#0e162a] border border-slate-800/80 rounded-2xl p-6 shadow-xl space-y-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-2">
-                <Code2 className="h-5 w-5 text-blue-400" />
-                <h2 className="text-sm font-semibold uppercase tracking-wider text-slate-200">
-                  SQL Query & Execution Plan Target
-                </h2>
-              </div>
-              <button
-                onClick={() => setShowConnStr(!showConnStr)}
-                className="text-xs text-blue-400 hover:text-blue-300 flex items-center space-x-1"
-              >
-                <span>{showConnStr ? "Hide Connection String" : "Connect Live PostgreSQL DB (Optional)"}</span>
-                {showConnStr ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
-              </button>
+        <div className="bg-[#22081F] border border-[#4D1546] rounded-2xl p-6 shadow-xl space-y-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-2">
+              <Code2 className="h-5 w-5 text-[#EAA000]" />
+              <h2 className="text-sm font-bold uppercase tracking-wider text-[#DDE3E8]">
+                SQL Query & Target Execution Plan
+              </h2>
             </div>
+            <button
+              onClick={() => setShowConnStr(!showConnStr)}
+              className="text-xs text-[#EAA000] hover:underline flex items-center space-x-1"
+            >
+              <span>{showConnStr ? "Hide Connection String" : "Connect Live PostgreSQL DB (Optional)"}</span>
+              {showConnStr ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
+            </button>
+          </div>
 
-            {showConnStr && (
-              <div className="p-3 rounded-xl bg-[#131d36] border border-slate-800 text-xs space-y-2">
-                <label className="text-slate-300 block font-medium">PostgreSQL Connection URI:</label>
-                <input
-                  type="text"
-                  placeholder="postgresql://user:password@localhost:5432/tpch"
-                  value={connStr}
-                  onChange={(e) => setConnStr(e.target.value)}
-                  className="w-full bg-[#0a0f1d] border border-slate-700/80 rounded-lg px-3 py-2 text-slate-200 font-mono focus:outline-none focus:border-blue-500"
+          {showConnStr && (
+            <div className="p-3 rounded-xl bg-[#2B0B27] border border-[#4D1546] text-xs space-y-2">
+              <label className="text-[#DDE3E8] block font-medium">PostgreSQL Connection URI:</label>
+              <input
+                type="text"
+                placeholder="postgresql://user:password@localhost:5432/tpch"
+                value={connStr}
+                onChange={(e) => setConnStr(e.target.value)}
+                className="w-full bg-[#170515] border border-[#631C5B] rounded-lg px-3 py-2 text-[#DDE3E8] font-mono focus:outline-none focus:border-[#EAA000]"
+              />
+              <p className="text-[11px] text-[#A0B0BE]">
+                Leave empty to use built-in PostgreSQL cost and cardinality simulator.
+              </p>
+            </div>
+          )}
+
+          {/* SQL Textarea */}
+          <div className="relative">
+            <textarea
+              rows={7}
+              value={sql}
+              onChange={(e) => setSql(e.target.value)}
+              placeholder="Enter SQL Query (e.g. SELECT * FROM orders WHERE status = 'PENDING')..."
+              className="w-full bg-[#170515] border border-[#4D1546] rounded-xl p-4 text-xs sm:text-sm font-mono text-[#DDE3E8] focus:outline-none focus:border-[#EAA000] focus:ring-1 focus:ring-[#EAA000] transition"
+            />
+          </div>
+
+          {/* Optional Raw EXPLAIN JSON Accordion */}
+          <div>
+            <button
+              onClick={() => setShowRawPlan(!showRawPlan)}
+              className="text-xs text-[#A0B0BE] hover:text-[#DDE3E8] flex items-center space-x-1"
+            >
+              <span>{showRawPlan ? "Hide Raw EXPLAIN JSON" : "+ Paste Custom EXPLAIN (FORMAT JSON) Tree"}</span>
+            </button>
+            {showRawPlan && (
+              <div className="mt-2">
+                <textarea
+                  rows={4}
+                  value={rawPlanInput}
+                  onChange={(e) => setRawPlanInput(e.target.value)}
+                  placeholder='Paste EXPLAIN (ANALYZE, BUFFERS, FORMAT JSON) output (e.g. [{"Plan": {...}}] )'
+                  className="w-full bg-[#170515] border border-[#4D1546] rounded-xl p-3 text-xs font-mono text-[#DDE3E8] focus:outline-none focus:border-[#EAA000]"
                 />
-                <p className="text-[11px] text-slate-400">
-                  Leave empty to use built-in PostgreSQL cost and cardinality simulator.
-                </p>
               </div>
             )}
+          </div>
 
-            {/* SQL Textarea */}
-            <div className="relative">
-              <textarea
-                rows={7}
-                value={sql}
-                onChange={(e) => setSql(e.target.value)}
-                placeholder="Enter SQL Query (e.g. SELECT * FROM orders WHERE status = 'PENDING')..."
-                className="w-full bg-[#070c18] border border-slate-800 rounded-xl p-4 text-xs sm:text-sm font-mono text-slate-200 focus:outline-none focus:border-blue-500/80 focus:ring-1 focus:ring-blue-500 transition"
-              />
-            </div>
-
-            {/* Optional Raw EXPLAIN JSON Accordion */}
-            <div>
-              <button
-                onClick={() => setShowRawPlan(!showRawPlan)}
-                className="text-xs text-slate-400 hover:text-slate-300 flex items-center space-x-1"
-              >
-                <span>{showRawPlan ? "Hide Raw EXPLAIN JSON" : "+ Paste Custom EXPLAIN (FORMAT JSON) Tree"}</span>
-              </button>
-              {showRawPlan && (
-                <div className="mt-2">
-                  <textarea
-                    rows={4}
-                    value={rawPlanInput}
-                    onChange={(e) => setRawPlanInput(e.target.value)}
-                    placeholder='Paste EXPLAIN (ANALYZE, BUFFERS, FORMAT JSON) output (e.g. [{"Plan": {...}}] )'
-                    className="w-full bg-[#070c18] border border-slate-800 rounded-xl p-3 text-xs font-mono text-slate-300 focus:outline-none focus:border-blue-500"
-                  />
-                </div>
+          {/* Submit Bar */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-2">
+            <span className="text-xs text-[#A0B0BE]">
+              {!currentUser
+                ? "⚡ Guest Mode: Analyzes query latency & fast/slow verdict. Sign in with MongoDB to view full index DDL, query fixes & plan trees."
+                : "✓ Authenticated with MongoDB: Full access to CREATE INDEX DDL, query rewrites & execution plan trees."}
+            </span>
+            <button
+              onClick={handleAnalyze}
+              disabled={loading || !sql.trim()}
+              className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-[#EAA000] to-[#FFB526] hover:from-[#FFB526] hover:to-[#EAA000] text-[#170515] font-bold text-sm flex items-center justify-center space-x-2 shadow-lg shadow-[#EAA000]/20 transition disabled:opacity-50 disabled:cursor-not-allowed shrink-0"
+            >
+              {loading ? (
+                <>
+                  <RefreshCw className="h-4 w-4 animate-spin text-[#170515]" />
+                  <span>Analyzing Plan...</span>
+                </>
+              ) : (
+                <>
+                  <Zap className="h-4 w-4 text-[#170515]" />
+                  <span>Analyze Query & Get Advice</span>
+                </>
               )}
-            </div>
-
-            {/* Submit Bar */}
-            <div className="flex items-center justify-between pt-2">
-              <span className="text-xs text-slate-400">
-                {!currentUser
-                  ? "⚡ Guest Mode: Analyzes latency & verdict. Sign in with MongoDB to unlock detailed index advice & plan explanations."
-                  : "✓ Authenticated with MongoDB: Full access to index DDL, plan trees, and feature attributions."}
-              </span>
-              <button
-                onClick={handleAnalyze}
-                disabled={loading || !sql.trim()}
-                className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-medium text-sm flex items-center space-x-2 shadow-lg shadow-blue-500/25 transition disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {loading ? (
-                  <>
-                    <RefreshCw className="h-4 w-4 animate-spin" />
-                    <span>Analyzing Plan...</span>
-                  </>
-                ) : (
-                  <>
-                    <Zap className="h-4 w-4" />
-                    <span>Analyze Query & Get Advice</span>
-                  </>
-                )}
-              </button>
-            </div>
+            </button>
           </div>
         </div>
 
@@ -476,20 +478,20 @@ export default function Dashboard() {
             {/* KPI Cards Row (Always visible to all users) */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
               {/* Card 1: Latency */}
-              <div className="bg-[#0e162a] border border-slate-800/80 rounded-2xl p-5 shadow-lg">
-                <div className="flex items-center justify-between text-xs text-slate-400 mb-2">
+              <div className="bg-[#22081F] border border-[#4D1546] rounded-2xl p-5 shadow-lg">
+                <div className="flex items-center justify-between text-xs text-[#A0B0BE] mb-2">
                   <span>Predicted Latency</span>
-                  <Clock className="h-4 w-4 text-blue-400" />
+                  <Clock className="h-4 w-4 text-[#EAA000]" />
                 </div>
-                <div className="text-2xl font-bold text-white font-mono">{result.predicted_ms} ms</div>
-                <div className="text-xs text-slate-400 mt-1">
-                  Budget: <span className="font-mono text-slate-300">{result.slow_threshold_ms} ms</span>
+                <div className="text-2xl font-bold text-[#DDE3E8] font-mono">{result.predicted_ms} ms</div>
+                <div className="text-xs text-[#A0B0BE] mt-1">
+                  Budget: <span className="font-mono text-[#DDE3E8]">{result.slow_threshold_ms} ms</span>
                 </div>
               </div>
 
               {/* Card 2: Performance Verdict */}
-              <div className="bg-[#0e162a] border border-slate-800/80 rounded-2xl p-5 shadow-lg">
-                <div className="flex items-center justify-between text-xs text-slate-400 mb-2">
+              <div className="bg-[#22081F] border border-[#4D1546] rounded-2xl p-5 shadow-lg">
+                <div className="flex items-center justify-between text-xs text-[#A0B0BE] mb-2">
                   <span>Performance Classification</span>
                   {result.is_slow ? (
                     <AlertTriangle className="h-4 w-4 text-rose-400" />
@@ -499,105 +501,122 @@ export default function Dashboard() {
                 </div>
                 <div className="flex items-center space-x-2">
                   <span
-                    className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold ${
+                    className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold ${
                       result.is_slow
-                        ? "bg-rose-500/15 text-rose-400 border border-rose-500/30"
-                        : "bg-emerald-500/15 text-emerald-400 border border-emerald-500/30"
+                        ? "bg-rose-500/20 text-rose-300 border border-rose-500/40"
+                        : "bg-emerald-500/20 text-emerald-300 border border-emerald-500/40"
                     }`}
                   >
                     {result.is_slow ? "🔴 SLOW QUERY" : "🟢 FAST / OPTIMAL"}
                   </span>
                 </div>
-                <div className="text-xs text-slate-400 mt-2 line-clamp-1">
-                  {result.is_slow ? "Exceeds latency budget" : "Within target SLAs"}
+                <div className="text-xs text-[#A0B0BE] mt-2 line-clamp-1">
+                  {result.is_slow ? "Exceeds latency SLA budget" : "Within target SLAs"}
                 </div>
               </div>
 
               {/* Card 3: Projected Speedup */}
-              <div className="bg-[#0e162a] border border-slate-800/80 rounded-2xl p-5 shadow-lg">
-                <div className="flex items-center justify-between text-xs text-slate-400 mb-2">
+              <div className="bg-[#22081F] border border-[#4D1546] rounded-2xl p-5 shadow-lg">
+                <div className="flex items-center justify-between text-xs text-[#A0B0BE] mb-2">
                   <span>Projected Speedup</span>
-                  <Zap className="h-4 w-4 text-amber-400" />
+                  <Zap className="h-4 w-4 text-[#EAA000]" />
                 </div>
-                <div className="text-2xl font-bold text-amber-400 font-mono">
+                <div className="text-2xl font-bold text-[#EAA000] font-mono">
                   {result.speedup_ratio > 1 ? `${result.speedup_ratio}x` : "1.0x (Optimal)"}
                 </div>
-                <div className="text-xs text-slate-400 mt-1">Post-optimization projection</div>
+                <div className="text-xs text-[#A0B0BE] mt-1">Post-optimization projection</div>
               </div>
 
               {/* Card 4: Estimated Execution Post-Fix */}
-              <div className="bg-[#0e162a] border border-slate-800/80 rounded-2xl p-5 shadow-lg">
-                <div className="flex items-center justify-between text-xs text-slate-400 mb-2">
+              <div className="bg-[#22081F] border border-[#4D1546] rounded-2xl p-5 shadow-lg">
+                <div className="flex items-center justify-between text-xs text-[#A0B0BE] mb-2">
                   <span>Optimized Target Latency</span>
                   <CheckCircle className="h-4 w-4 text-emerald-400" />
                 </div>
                 <div className="text-2xl font-bold text-emerald-400 font-mono">
                   {result.estimated_improved_ms} ms
                 </div>
-                <div className="text-xs text-slate-400 mt-1">
+                <div className="text-xs text-[#A0B0BE] mt-1">
                   Estimated post-index execution
                 </div>
               </div>
             </div>
 
             {/* Executive Summary Card (Visible to all) */}
-            <div className="bg-[#0e162a] border border-slate-800/80 rounded-2xl p-5 shadow-lg flex items-start space-x-4">
-              <div className="p-2 rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-400 mt-0.5">
+            <div className="bg-[#22081F] border border-[#4D1546] rounded-2xl p-5 shadow-lg flex items-start space-x-4">
+              <div className="p-2.5 rounded-xl bg-[#3A0F34] border border-[#631C5B] text-[#EAA000] mt-0.5">
                 <Sparkles className="h-5 w-5" />
               </div>
               <div>
-                <h3 className="text-sm font-semibold text-white mb-1">Executive Advisor Summary</h3>
-                <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">{result.summary}</p>
+                <h3 className="text-sm font-bold text-[#DDE3E8] mb-1">Executive Advisor Summary</h3>
+                <p className="text-xs sm:text-sm text-[#A0B0BE] leading-relaxed">{result.summary}</p>
               </div>
             </div>
 
             {/* Detailed Tabs Header */}
-            <div className="flex space-x-2 border-b border-slate-800">
+            <div className="flex flex-wrap gap-2 border-b border-[#4D1546] pb-1">
               <button
                 onClick={() => setActiveTab("advice")}
-                className={`pb-3 px-4 text-xs sm:text-sm font-medium border-b-2 transition flex items-center space-x-2 ${
+                className={`pb-2.5 px-4 text-xs sm:text-sm font-bold border-b-2 transition flex items-center space-x-2 ${
                   activeTab === "advice"
-                    ? "border-blue-500 text-blue-400"
-                    : "border-transparent text-slate-400 hover:text-slate-200"
+                    ? "border-[#EAA000] text-[#EAA000]"
+                    : "border-transparent text-[#A0B0BE] hover:text-[#DDE3E8]"
                 }`}
               >
                 <Zap className="h-4 w-4" />
-                <span>Recommendations ({result.recommendations.length})</span>
-                {!currentUser && <Lock className="h-3 w-3 text-amber-400 ml-1" />}
+                <span>
+                  Recommendations ({result.recommendations.length})
+                </span>
+                {!currentUser && result.recommendations.length > 0 && (
+                  <Lock className="h-3 w-3 text-[#EAA000] ml-1" />
+                )}
+              </button>
+
+              <button
+                onClick={() => setActiveTab("improved")}
+                className={`pb-2.5 px-4 text-xs sm:text-sm font-bold border-b-2 transition flex items-center space-x-2 ${
+                  activeTab === "improved"
+                    ? "border-[#EAA000] text-[#EAA000]"
+                    : "border-transparent text-[#A0B0BE] hover:text-[#DDE3E8]"
+                }`}
+              >
+                <FileCode2 className="h-4 w-4" />
+                <span>Improved Query DDL</span>
+                {!currentUser && <Lock className="h-3 w-3 text-[#EAA000] ml-1" />}
               </button>
 
               <button
                 onClick={() => setActiveTab("features")}
-                className={`pb-3 px-4 text-xs sm:text-sm font-medium border-b-2 transition flex items-center space-x-2 ${
+                className={`pb-2.5 px-4 text-xs sm:text-sm font-bold border-b-2 transition flex items-center space-x-2 ${
                   activeTab === "features"
-                    ? "border-blue-500 text-blue-400"
-                    : "border-transparent text-slate-400 hover:text-slate-200"
+                    ? "border-[#EAA000] text-[#EAA000]"
+                    : "border-transparent text-[#A0B0BE] hover:text-[#DDE3E8]"
                 }`}
               >
                 <BarChart3 className="h-4 w-4" />
                 <span>Feature Importance / Bottlenecks</span>
-                {!currentUser && <Lock className="h-3 w-3 text-amber-400 ml-1" />}
+                {!currentUser && <Lock className="h-3 w-3 text-[#EAA000] ml-1" />}
               </button>
 
               <button
                 onClick={() => setActiveTab("plan")}
-                className={`pb-3 px-4 text-xs sm:text-sm font-medium border-b-2 transition flex items-center space-x-2 ${
+                className={`pb-2.5 px-4 text-xs sm:text-sm font-bold border-b-2 transition flex items-center space-x-2 ${
                   activeTab === "plan"
-                    ? "border-blue-500 text-blue-400"
-                    : "border-transparent text-slate-400 hover:text-slate-200"
+                    ? "border-[#EAA000] text-[#EAA000]"
+                    : "border-transparent text-[#A0B0BE] hover:text-[#DDE3E8]"
                 }`}
               >
                 <Layers className="h-4 w-4" />
                 <span>Execution Plan Tree</span>
-                {!currentUser && <Lock className="h-3 w-3 text-amber-400 ml-1" />}
+                {!currentUser && <Lock className="h-3 w-3 text-[#EAA000] ml-1" />}
               </button>
 
               <button
                 onClick={() => setActiveTab("models")}
-                className={`pb-3 px-4 text-xs sm:text-sm font-medium border-b-2 transition flex items-center space-x-2 ${
+                className={`pb-2.5 px-4 text-xs sm:text-sm font-bold border-b-2 transition flex items-center space-x-2 ${
                   activeTab === "models"
-                    ? "border-blue-500 text-blue-400"
-                    : "border-transparent text-slate-400 hover:text-slate-200"
+                    ? "border-[#EAA000] text-[#EAA000]"
+                    : "border-transparent text-[#A0B0BE] hover:text-[#DDE3E8]"
                 }`}
               >
                 <Cpu className="h-4 w-4" />
@@ -607,154 +626,235 @@ export default function Dashboard() {
 
             {/* TAB 1: RECOMMENDATIONS */}
             {activeTab === "advice" && (
-              <div className="space-y-4 relative">
-                {!currentUser ? (
-                  /* Gated / Locked State for Unauthenticated User */
-                  <div className="relative rounded-2xl overflow-hidden border border-amber-500/30 bg-[#0e162a] p-6 shadow-2xl">
-                    {/* Blurred Background Teaser */}
-                    <div className="filter blur-sm pointer-events-none opacity-40 select-none space-y-4">
-                      <div className="p-4 rounded-xl bg-slate-900 border border-slate-800">
-                        <div className="h-4 bg-slate-700 rounded w-1/4 mb-2" />
-                        <div className="h-10 bg-slate-800 rounded w-full mb-2 font-mono text-xs flex items-center px-3">
-                          CREATE INDEX idx_orders_customer_id ON orders(customer_id, status);
-                        </div>
-                        <div className="h-3 bg-slate-700 rounded w-3/4" />
-                      </div>
+              <div className="space-y-4">
+                {result.recommendations.length === 0 ? (
+                  /* Optimal Query State (Always clean and visible) */
+                  <div className="p-8 rounded-2xl bg-[#22081F] border border-[#4D1546] text-center space-y-2 shadow-lg">
+                    <CheckCircle className="h-8 w-8 text-emerald-400 mx-auto mb-1" />
+                    <p className="font-bold text-base text-[#DDE3E8]">No Missing Indexes Detected</p>
+                    <p className="text-xs text-[#A0B0BE] max-w-md mx-auto">
+                      This query already runs with optimal access paths (B-Tree index scans or primary key lookups).
+                      Zero sequential scan bottlenecks were detected.
+                    </p>
+                  </div>
+                ) : !currentUser ? (
+                  /* Gated Lock State for Unauthenticated User (FULL HEIGHT, UNCLIPPED, WITH GLOWING BUTTONS) */
+                  <div className="rounded-2xl border-2 border-[#EAA000]/40 bg-[#22081F] p-8 sm:p-10 shadow-2xl text-center space-y-5">
+                    <div className="h-14 w-14 rounded-2xl bg-[#3A0F34] border border-[#EAA000]/50 flex items-center justify-center text-[#EAA000] shadow-xl shadow-[#EAA000]/10 mx-auto">
+                      <Lock className="h-7 w-7 text-[#EAA000]" />
                     </div>
 
-                    {/* Lock Overlay Banner */}
-                    <div className="absolute inset-0 bg-[#080d19]/85 backdrop-blur-md flex flex-col items-center justify-center p-6 text-center z-10 space-y-4">
-                      <div className="h-12 w-12 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400 shadow-lg shadow-amber-500/10">
-                        <Lock className="h-6 w-6" />
+                    <div className="max-w-lg mx-auto space-y-2">
+                      <div className="inline-flex items-center space-x-1.5 px-3 py-1 rounded-full bg-[#EAA000]/15 text-[#EAA000] text-xs font-mono font-bold border border-[#EAA000]/30">
+                        <Zap className="h-3.5 w-3.5" />
+                        <span>{result.recommendations.length} Index Recommendation(s) Available (~{result.speedup_ratio}x Speedup)</span>
                       </div>
-                      <div className="max-w-md space-y-1.5">
-                        <h3 className="text-base font-bold text-white">
-                          Login Required to Unlock Index Recommendations & Improved Query
-                        </h3>
-                        <p className="text-xs text-slate-300 leading-relaxed">
-                          Basic query latency and performance verdict are shown above. To view exact{" "}
-                          <span className="text-amber-400 font-mono">CREATE INDEX</span> DDL statements,
-                          predicate column fixes, and speedup multipliers, sign in using your MongoDB account.
-                        </p>
-                      </div>
+                      <h3 className="text-lg font-bold text-[#DDE3E8]">
+                        Login Required to Unlock Index Recommendations & Improved Query
+                      </h3>
+                      <p className="text-xs sm:text-sm text-[#A0B0BE] leading-relaxed">
+                        Basic query latency and performance verdicts are shown above. To unlock the exact{" "}
+                        <span className="text-[#EAA000] font-mono font-semibold">CREATE INDEX</span> DDL statements,
+                        predicate column fixes, and full plan trees, please sign in using your MongoDB account.
+                      </p>
+                    </div>
 
-                      <div className="flex items-center space-x-3 pt-2">
-                        <button
-                          onClick={() => {
-                            setAuthMode("login");
-                            setShowAuthModal(true);
-                          }}
-                          className="px-5 py-2 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-medium text-xs shadow-lg shadow-blue-500/25 transition flex items-center space-x-1.5"
-                        >
-                          <KeyRound className="h-3.5 w-3.5" />
-                          <span>Sign In to Unlock</span>
-                        </button>
-                        <button
-                          onClick={handleDemoQuickLogin}
-                          className="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-medium text-xs border border-slate-700 transition flex items-center space-x-1.5"
-                        >
-                          <Sparkles className="h-3.5 w-3.5 text-amber-400" />
-                          <span>1-Click Demo Login</span>
-                        </button>
-                      </div>
+                    {/* Prominent, Unclipped Action Buttons */}
+                    <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-3">
+                      <button
+                        onClick={() => {
+                          setAuthMode("login");
+                          setShowAuthModal(true);
+                        }}
+                        className="w-full sm:w-auto px-6 py-2.5 rounded-xl bg-gradient-to-r from-[#EAA000] to-[#FFB526] hover:from-[#FFB526] hover:to-[#EAA000] text-[#170515] font-bold text-xs shadow-lg shadow-[#EAA000]/25 transition flex items-center justify-center space-x-2"
+                      >
+                        <KeyRound className="h-4 w-4 text-[#170515]" />
+                        <span>Sign In with MongoDB</span>
+                      </button>
+                      <button
+                        onClick={handleDemoQuickLogin}
+                        className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-[#3A0F34] hover:bg-[#4D1546] text-[#DDE3E8] font-semibold text-xs border border-[#631C5B] transition flex items-center justify-center space-x-2 shadow-md"
+                      >
+                        <Sparkles className="h-4 w-4 text-[#EAA000]" />
+                        <span>One-Click Class Demo Login (pes_demo)</span>
+                      </button>
                     </div>
                   </div>
                 ) : (
                   /* Full Unlocked View for Logged-In User */
                   <>
                     <div className="flex items-center justify-between px-1">
-                      <div className="flex items-center space-x-2 text-xs text-emerald-400">
+                      <div className="flex items-center space-x-2 text-xs text-emerald-400 font-medium">
                         <Unlock className="h-3.5 w-3.5" />
-                        <span>Unlocked with MongoDB Auth · Full DDL and Speedup Advice</span>
+                        <span>Unlocked with MongoDB Auth · Full DDL and Speedup Advice Active</span>
                       </div>
                     </div>
 
-                    {result.recommendations.length === 0 ? (
-                      <div className="p-8 rounded-2xl bg-[#0e162a] border border-slate-800 text-center text-slate-400">
-                        <CheckCircle className="h-8 w-8 text-emerald-400 mx-auto mb-2" />
-                        <p className="font-medium text-slate-200">No Missing Indexes Detected</p>
-                        <p className="text-xs mt-1">This query already runs with optimal access paths.</p>
-                      </div>
-                    ) : (
-                      result.recommendations.map((rec, idx) => (
-                        <div
-                          key={idx}
-                          className="p-5 rounded-2xl bg-[#0e162a] border border-slate-800/80 shadow-lg space-y-3"
-                        >
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center space-x-2">
-                              <span
-                                className={`px-2 py-0.5 rounded text-[11px] font-bold ${
-                                  rec.priority === "CRITICAL"
-                                    ? "bg-rose-500/15 text-rose-400 border border-rose-500/30"
-                                    : "bg-amber-500/15 text-amber-400 border border-amber-500/30"
-                                }`}
-                              >
-                                {rec.priority}
-                              </span>
-                              <span className="text-xs font-semibold text-slate-200">
-                                Action: {rec.action_type} on {rec.target_table}
-                              </span>
-                            </div>
-                            <div className="text-xs font-mono text-emerald-400 font-semibold">
-                              ~{rec.estimated_speedup}x speedup
-                            </div>
-                          </div>
-
-                          {/* SQL Code Box with Copy */}
-                          <div className="flex items-center justify-between p-3 rounded-xl bg-[#080d1a] border border-slate-800 font-mono text-xs sm:text-sm text-blue-300">
-                            <code className="overflow-x-auto pr-4">{rec.sql}</code>
-                            <button
-                              onClick={() => handleCopy(rec.sql)}
-                              className="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 flex items-center space-x-1 transition text-xs shrink-0"
+                    {result.recommendations.map((rec, idx) => (
+                      <div
+                        key={idx}
+                        className="p-5 rounded-2xl bg-[#22081F] border border-[#4D1546] shadow-lg space-y-3"
+                      >
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center space-x-2">
+                            <span
+                              className={`px-2 py-0.5 rounded text-[11px] font-bold ${
+                                rec.priority === "CRITICAL"
+                                  ? "bg-rose-500/20 text-rose-300 border border-rose-500/40"
+                                  : "bg-[#EAA000]/20 text-[#EAA000] border border-[#EAA000]/40"
+                              }`}
                             >
-                              {copiedSql === rec.sql ? (
-                                <>
-                                  <Check className="h-3.5 w-3.5 text-emerald-400" />
-                                  <span className="text-emerald-400">Copied</span>
-                                </>
-                              ) : (
-                                <>
-                                  <Copy className="h-3.5 w-3.5" />
-                                  <span>Copy</span>
-                                </>
-                              )}
-                            </button>
+                              {rec.priority}
+                            </span>
+                            <span className="text-xs font-semibold text-[#DDE3E8]">
+                              Action: {rec.action_type} on {rec.target_table}
+                            </span>
                           </div>
-
-                          <p className="text-xs text-slate-400 leading-relaxed">{rec.reason}</p>
+                          <div className="text-xs font-mono text-emerald-400 font-bold">
+                            ~{rec.estimated_speedup}x speedup
+                          </div>
                         </div>
-                      ))
-                    )}
+
+                        {/* SQL Code Box with Copy */}
+                        <div className="flex items-center justify-between p-3.5 rounded-xl bg-[#170515] border border-[#4D1546] font-mono text-xs sm:text-sm text-[#EAA000]">
+                          <code className="overflow-x-auto pr-4">{rec.sql}</code>
+                          <button
+                            onClick={() => handleCopy(rec.sql)}
+                            className="px-3 py-1.5 rounded-lg bg-[#3A0F34] hover:bg-[#4D1546] text-[#DDE3E8] border border-[#631C5B] flex items-center space-x-1.5 transition text-xs shrink-0 font-medium"
+                          >
+                            {copiedSql === rec.sql ? (
+                              <>
+                                <Check className="h-3.5 w-3.5 text-emerald-400" />
+                                <span className="text-emerald-400">Copied</span>
+                              </>
+                            ) : (
+                              <>
+                                <Copy className="h-3.5 w-3.5 text-[#EAA000]" />
+                                <span>Copy SQL</span>
+                              </>
+                            )}
+                          </button>
+                        </div>
+
+                        <p className="text-xs text-[#A0B0BE] leading-relaxed">{rec.reason}</p>
+                      </div>
+                    ))}
                   </>
                 )}
               </div>
             )}
 
-            {/* TAB 2: FEATURE IMPORTANCE / BOTTLENECK EXPLANATION */}
-            {activeTab === "features" && (
-              <div className="bg-[#0e162a] border border-slate-800/80 rounded-2xl p-6 shadow-lg space-y-6 relative overflow-hidden">
+            {/* TAB 2: IMPROVED QUERY PREVIEW */}
+            {activeTab === "improved" && (
+              <div className="bg-[#22081F] border border-[#4D1546] rounded-2xl p-6 shadow-lg space-y-4">
                 {!currentUser ? (
-                  <div className="flex flex-col items-center justify-center p-8 text-center space-y-3">
-                    <div className="h-10 w-10 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400">
-                      <Lock className="h-5 w-5" />
+                  <div className="text-center py-8 space-y-4">
+                    <div className="h-12 w-12 rounded-2xl bg-[#3A0F34] border border-[#EAA000]/40 flex items-center justify-center text-[#EAA000] mx-auto shadow-lg">
+                      <Lock className="h-6 w-6 text-[#EAA000]" />
                     </div>
-                    <h3 className="text-sm font-bold text-white">Login Required for Detailed Feature Attributions</h3>
-                    <p className="text-xs text-slate-400 max-w-sm">
-                      SHAP-like attribution scores and query execution bottleneck breakdowns are locked. Sign in to view.
-                    </p>
-                    <button
-                      onClick={() => setShowAuthModal(true)}
-                      className="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-medium"
-                    >
-                      Sign In with MongoDB
-                    </button>
+                    <div className="space-y-1">
+                      <h3 className="text-base font-bold text-[#DDE3E8]">
+                        Login Required to View Improved Query DDL & Execution Plan
+                      </h3>
+                      <p className="text-xs text-[#A0B0BE] max-w-md mx-auto">
+                        Sign in to view the optimized query rewritten with index usage and expected speedup.
+                      </p>
+                    </div>
+                    <div className="flex justify-center gap-3 pt-2">
+                      <button
+                        onClick={() => setShowAuthModal(true)}
+                        className="px-5 py-2 rounded-xl bg-gradient-to-r from-[#EAA000] to-[#FFB526] text-[#170515] font-bold text-xs shadow-md"
+                      >
+                        Sign In with MongoDB
+                      </button>
+                      <button
+                        onClick={handleDemoQuickLogin}
+                        className="px-4 py-2 rounded-xl bg-[#3A0F34] text-[#DDE3E8] border border-[#631C5B] text-xs font-semibold"
+                      >
+                        1-Click Demo Login
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h3 className="text-sm font-bold text-[#DDE3E8]">Improved Query & Optimization Plan</h3>
+                        <p className="text-xs text-[#A0B0BE]">
+                          Execute this index DDL in PostgreSQL to achieve the projected ~{result.speedup_ratio}x speedup.
+                        </p>
+                      </div>
+                      <span className="text-xs px-2.5 py-1 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 font-mono font-bold">
+                        Target Latency: {result.estimated_improved_ms} ms
+                      </span>
+                    </div>
+
+                    {result.recommendations.length > 0 ? (
+                      <div className="space-y-3">
+                        <div className="p-4 rounded-xl bg-[#170515] border border-[#4D1546] font-mono text-xs sm:text-sm text-[#DDE3E8] space-y-2">
+                          <div className="text-[#A0B0BE] text-xs">-- 1. Apply Recommended Index Fixes:</div>
+                          {result.recommendations.map((r, i) => (
+                            <div key={i} className="text-[#EAA000]">
+                              {r.sql}
+                            </div>
+                          ))}
+                          <div className="text-[#A0B0BE] text-xs pt-2">-- 2. Original Query (Now accelerated via Index Scan):</div>
+                          <div className="text-[#DDE3E8] whitespace-pre-wrap">{result.sql}</div>
+                        </div>
+
+                        <div className="p-3.5 rounded-xl bg-[#2B0B27] border border-[#4D1546] text-xs text-[#A0B0BE] space-y-1">
+                          <span className="font-semibold text-[#EAA000]">Optimization Mechanism:</span>
+                          <p>
+                            PostgreSQL&apos;s cost-based planner will replace the expensive Sequential Scan with a
+                            B-Tree Index Scan or Bitmap Heap Scan, reducing page reads from thousands of blocks to
+                            targeted logarithmic index lookups.
+                          </p>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="p-4 rounded-xl bg-[#170515] border border-[#4D1546] text-xs text-[#A0B0BE]">
+                        The query already runs at optimal latency ({result.predicted_ms} ms). No schema changes required.
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* TAB 3: FEATURE IMPORTANCE / BOTTLENECK EXPLANATION */}
+            {activeTab === "features" && (
+              <div className="bg-[#22081F] border border-[#4D1546] rounded-2xl p-6 shadow-lg space-y-6">
+                {!currentUser ? (
+                  <div className="text-center py-8 space-y-4">
+                    <div className="h-12 w-12 rounded-2xl bg-[#3A0F34] border border-[#EAA000]/40 flex items-center justify-center text-[#EAA000] mx-auto shadow-lg">
+                      <Lock className="h-6 w-6 text-[#EAA000]" />
+                    </div>
+                    <div className="space-y-1">
+                      <h3 className="text-base font-bold text-[#DDE3E8]">Login Required for Feature Attributions</h3>
+                      <p className="text-xs text-[#A0B0BE] max-w-md mx-auto">
+                        SHAP-like attribution scores and query execution bottleneck breakdowns are locked. Sign in to view.
+                      </p>
+                    </div>
+                    <div className="flex justify-center gap-3 pt-2">
+                      <button
+                        onClick={() => setShowAuthModal(true)}
+                        className="px-5 py-2 rounded-xl bg-gradient-to-r from-[#EAA000] to-[#FFB526] text-[#170515] font-bold text-xs shadow-md"
+                      >
+                        Sign In with MongoDB
+                      </button>
+                      <button
+                        onClick={handleDemoQuickLogin}
+                        className="px-4 py-2 rounded-xl bg-[#3A0F34] text-[#DDE3E8] border border-[#631C5B] text-xs font-semibold"
+                      >
+                        1-Click Demo Login
+                      </button>
+                    </div>
                   </div>
                 ) : (
                   <>
                     <div>
-                      <h3 className="text-sm font-semibold text-white">Local Feature Attributions</h3>
-                      <p className="text-xs text-slate-400 mt-0.5">
+                      <h3 className="text-sm font-bold text-[#DDE3E8]">Local Feature Attributions</h3>
+                      <p className="text-xs text-[#A0B0BE] mt-0.5">
                         Impact weights assigned to this query plan by the gradient-boosted tree model.
                       </p>
                     </div>
@@ -766,14 +866,14 @@ export default function Dashboard() {
                         return (
                           <div key={idx} className="space-y-1">
                             <div className="flex justify-between text-xs">
-                              <span className="font-medium text-slate-300">{feat.label}</span>
-                              <span className="font-mono text-slate-400">
-                                val: {feat.value} · impact: +{feat.impact_score}
+                              <span className="font-semibold text-[#DDE3E8]">{feat.label}</span>
+                              <span className="font-mono text-[#A0B0BE]">
+                                val: {feat.value} · impact: <span className="text-[#EAA000]">+{feat.impact_score}</span>
                               </span>
                             </div>
-                            <div className="h-2 w-full bg-slate-800 rounded-full overflow-hidden">
+                            <div className="h-2 w-full bg-[#170515] rounded-full overflow-hidden border border-[#4D1546]">
                               <div
-                                className="h-full bg-gradient-to-r from-blue-500 to-indigo-500 rounded-full"
+                                className="h-full bg-gradient-to-r from-[#3A0F34] to-[#EAA000] rounded-full"
                                 style={{ width: `${percent}%` }}
                               />
                             </div>
@@ -784,30 +884,30 @@ export default function Dashboard() {
 
                     {/* Bottlenecks list */}
                     {result.bottlenecks && result.bottlenecks.length > 0 && (
-                      <div className="border-t border-slate-800 pt-5 space-y-3">
-                        <h4 className="text-xs font-semibold uppercase tracking-wider text-slate-300">
+                      <div className="border-t border-[#4D1546] pt-5 space-y-3">
+                        <h4 className="text-xs font-bold uppercase tracking-wider text-[#DDE3E8]">
                           Identified Query Execution Bottlenecks
                         </h4>
                         <div className="space-y-2">
                           {result.bottlenecks.map((b, idx) => (
                             <div
                               key={idx}
-                              className="flex items-start justify-between p-3 rounded-xl bg-[#080d1a] border border-slate-800/70 text-xs"
+                              className="flex items-start justify-between p-3.5 rounded-xl bg-[#170515] border border-[#4D1546] text-xs"
                             >
                               <div className="flex items-start space-x-3">
                                 <span
                                   className={`px-2 py-0.5 rounded text-[10px] font-mono font-bold mt-0.5 ${
                                     b.severity === "CRITICAL"
-                                      ? "bg-rose-500/20 text-rose-400"
-                                      : "bg-amber-500/20 text-amber-400"
+                                      ? "bg-rose-500/20 text-rose-300 border border-rose-500/40"
+                                      : "bg-[#EAA000]/20 text-[#EAA000] border border-[#EAA000]/40"
                                   }`}
                                 >
                                   {b.node_type}
                                 </span>
-                                <span className="text-slate-300">{b.description}</span>
+                                <span className="text-[#DDE3E8]">{b.description}</span>
                               </div>
                               {b.impact_ms > 0 && (
-                                <span className="font-mono text-slate-400 shrink-0 ml-4">{b.impact_ms} ms</span>
+                                <span className="font-mono text-[#A0B0BE] shrink-0 ml-4">{b.impact_ms} ms</span>
                               )}
                             </div>
                           ))}
@@ -819,44 +919,54 @@ export default function Dashboard() {
               </div>
             )}
 
-            {/* TAB 3: EXECUTION PLAN TREE */}
+            {/* TAB 4: EXECUTION PLAN TREE */}
             {activeTab === "plan" && (
-              <div className="bg-[#0e162a] border border-slate-800/80 rounded-2xl p-6 shadow-lg space-y-4">
+              <div className="bg-[#22081F] border border-[#4D1546] rounded-2xl p-6 shadow-lg space-y-4">
                 {!currentUser ? (
-                  <div className="flex flex-col items-center justify-center p-8 text-center space-y-3">
-                    <div className="h-10 w-10 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400">
-                      <Lock className="h-5 w-5" />
+                  <div className="text-center py-8 space-y-4">
+                    <div className="h-12 w-12 rounded-2xl bg-[#3A0F34] border border-[#EAA000]/40 flex items-center justify-center text-[#EAA000] mx-auto shadow-lg">
+                      <Lock className="h-6 w-6 text-[#EAA000]" />
                     </div>
-                    <h3 className="text-sm font-bold text-white">Login Required for Full PostgreSQL Plan Tree</h3>
-                    <p className="text-xs text-slate-400 max-w-sm">
-                      Raw JSON plan trees and buffer metrics require authentication.
-                    </p>
-                    <button
-                      onClick={() => setShowAuthModal(true)}
-                      className="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-medium"
-                    >
-                      Sign In to View Plan Tree
-                    </button>
+                    <div className="space-y-1">
+                      <h3 className="text-base font-bold text-[#DDE3E8]">Login Required for Full PostgreSQL Plan Tree</h3>
+                      <p className="text-xs text-[#A0B0BE] max-w-md mx-auto">
+                        Raw JSON execution plans, buffer cache block reads, and operator trees require authentication.
+                      </p>
+                    </div>
+                    <div className="flex justify-center gap-3 pt-2">
+                      <button
+                        onClick={() => setShowAuthModal(true)}
+                        className="px-5 py-2 rounded-xl bg-gradient-to-r from-[#EAA000] to-[#FFB526] text-[#170515] font-bold text-xs shadow-md"
+                      >
+                        Sign In with MongoDB
+                      </button>
+                      <button
+                        onClick={handleDemoQuickLogin}
+                        className="px-4 py-2 rounded-xl bg-[#3A0F34] text-[#DDE3E8] border border-[#631C5B] text-xs font-semibold"
+                      >
+                        1-Click Demo Login
+                      </button>
+                    </div>
                   </div>
                 ) : (
                   <>
                     <div className="flex items-center justify-between">
                       <div>
-                        <h3 className="text-sm font-semibold text-white">PostgreSQL EXPLAIN Plan Tree</h3>
-                        <p className="text-xs text-slate-400 mt-0.5">
+                        <h3 className="text-sm font-bold text-[#DDE3E8]">PostgreSQL EXPLAIN Plan Tree</h3>
+                        <p className="text-xs text-[#A0B0BE] mt-0.5">
                           Hierarchical node structure returned by database optimizer.
                         </p>
                       </div>
                       <button
                         onClick={() => handleCopy(JSON.stringify(result.plan, null, 2))}
-                        className="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 flex items-center space-x-1 text-xs"
+                        className="px-3 py-1.5 rounded-lg bg-[#3A0F34] hover:bg-[#4D1546] text-[#DDE3E8] border border-[#631C5B] flex items-center space-x-1.5 text-xs font-semibold"
                       >
-                        <Copy className="h-3.5 w-3.5" />
+                        <Copy className="h-3.5 w-3.5 text-[#EAA000]" />
                         <span>Copy JSON</span>
                       </button>
                     </div>
 
-                    <pre className="p-4 rounded-xl bg-[#070c18] border border-slate-800 overflow-x-auto text-xs font-mono text-slate-300 max-h-96">
+                    <pre className="p-4 rounded-xl bg-[#170515] border border-[#4D1546] overflow-x-auto text-xs font-mono text-[#DDE3E8] max-h-96">
                       {JSON.stringify(result.plan, null, 2)}
                     </pre>
                   </>
@@ -864,12 +974,12 @@ export default function Dashboard() {
               </div>
             )}
 
-            {/* TAB 4: MODEL COMPARISON */}
+            {/* TAB 5: MODEL COMPARISON */}
             {activeTab === "models" && (
-              <div className="bg-[#0e162a] border border-slate-800/80 rounded-2xl p-6 shadow-lg space-y-4">
+              <div className="bg-[#22081F] border border-[#4D1546] rounded-2xl p-6 shadow-lg space-y-4">
                 <div>
-                  <h3 className="text-sm font-semibold text-white">Model Benchmark & Evaluation Metrics</h3>
-                  <p className="text-xs text-slate-400 mt-0.5">
+                  <h3 className="text-sm font-bold text-[#DDE3E8]">Model Benchmark & Evaluation Metrics</h3>
+                  <p className="text-xs text-[#A0B0BE] mt-0.5">
                     Trained across 1,500+ plans with RTX 2050 / Ampere-compatible pipeline.
                   </p>
                 </div>
@@ -877,24 +987,24 @@ export default function Dashboard() {
                 {modelMetrics ? (
                   <div className="overflow-x-auto">
                     <table className="w-full text-xs text-left">
-                      <thead className="bg-[#121b33] text-slate-300 uppercase font-mono">
+                      <thead className="bg-[#3A0F34] text-[#DDE3E8] uppercase font-mono">
                         <tr>
                           <th className="p-3 rounded-l-lg">Model Architecture</th>
                           <th className="p-3">RMSE (ms)</th>
                           <th className="p-3">MAE (ms)</th>
-                          <th className="p-3">R² Score</th>
+                          <th className="p-3">R² Score / Acc</th>
                           <th className="p-3 rounded-r-lg">Status</th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-slate-800/80">
+                      <tbody className="divide-y divide-[#4D1546]">
                         {Object.entries(modelMetrics).map(([name, m]: [string, any]) => (
-                          <tr key={name} className="hover:bg-slate-800/30">
-                            <td className="p-3 font-medium text-white">{name}</td>
-                            <td className="p-3 font-mono text-slate-300">{m.rmse ?? "—"}</td>
-                            <td className="p-3 font-mono text-slate-300">{m.mae ?? "—"}</td>
-                            <td className="p-3 font-mono text-emerald-400 font-semibold">{m.r2 ?? m.accuracy ?? "—"}</td>
+                          <tr key={name} className="hover:bg-[#2B0B27]">
+                            <td className="p-3 font-semibold text-[#DDE3E8]">{name}</td>
+                            <td className="p-3 font-mono text-[#A0B0BE]">{m.rmse ?? "—"}</td>
+                            <td className="p-3 font-mono text-[#A0B0BE]">{m.mae ?? "—"}</td>
+                            <td className="p-3 font-mono text-[#EAA000] font-bold">{m.r2 ?? m.accuracy ?? "—"}</td>
                             <td className="p-3">
-                              <span className="px-2 py-0.5 rounded bg-blue-500/10 text-blue-400 border border-blue-500/20 font-mono">
+                              <span className="px-2 py-0.5 rounded bg-[#EAA000]/15 text-[#EAA000] border border-[#EAA000]/30 font-mono text-[11px] font-bold">
                                 Pre-Trained
                               </span>
                             </td>
@@ -904,7 +1014,7 @@ export default function Dashboard() {
                     </table>
                   </div>
                 ) : (
-                  <div className="text-xs text-slate-400">Loading model benchmarks...</div>
+                  <div className="text-xs text-[#A0B0BE]">Loading model benchmarks...</div>
                 )}
               </div>
             )}
@@ -914,37 +1024,39 @@ export default function Dashboard() {
 
       {/* Auth Modal (Login / Register using MongoDB) */}
       {showAuthModal && (
-        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-[#0e162a] border border-slate-800 rounded-2xl w-full max-w-md p-6 shadow-2xl relative space-y-5 animate-in fade-in zoom-in-95 duration-200">
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex items-center justify-center p-4">
+          <div className="bg-[#22081F] border-2 border-[#EAA000]/50 rounded-2xl w-full max-w-md p-6 shadow-2xl relative space-y-5 animate-in fade-in zoom-in-95 duration-200">
             {/* Close button */}
             <button
               onClick={() => setShowAuthModal(false)}
-              className="absolute top-4 right-4 p-1 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800"
+              className="absolute top-4 right-4 p-1 text-[#A0B0BE] hover:text-[#DDE3E8] rounded-lg hover:bg-[#3A0F34]"
             >
               <X className="h-5 w-5" />
             </button>
 
             {/* Header */}
             <div className="flex items-center space-x-3">
-              <div className="h-10 w-10 rounded-xl bg-blue-600/20 border border-blue-500/30 flex items-center justify-center text-blue-400">
+              <div className="h-10 w-10 rounded-xl bg-[#3A0F34] border border-[#EAA000]/40 flex items-center justify-center text-[#EAA000]">
                 <ShieldCheck className="h-5 w-5" />
               </div>
               <div>
-                <h3 className="font-bold text-base text-white">MongoDB User Authentication</h3>
-                <p className="text-xs text-slate-400">Credentials stored with bcrypt in MongoDB</p>
+                <h3 className="font-bold text-base text-[#DDE3E8]">MongoDB User Authentication</h3>
+                <p className="text-xs text-[#A0B0BE]">Credentials hashed with bcrypt in MongoDB</p>
               </div>
             </div>
 
             {/* Mode Tabs */}
-            <div className="flex rounded-xl bg-[#070c18] p-1 border border-slate-800">
+            <div className="flex rounded-xl bg-[#170515] p-1 border border-[#4D1546]">
               <button
                 type="button"
                 onClick={() => {
                   setAuthMode("login");
                   setAuthError("");
                 }}
-                className={`flex-1 py-1.5 text-xs font-semibold rounded-lg transition ${
-                  authMode === "login" ? "bg-blue-600 text-white shadow" : "text-slate-400 hover:text-slate-200"
+                className={`flex-1 py-1.5 text-xs font-bold rounded-lg transition ${
+                  authMode === "login"
+                    ? "bg-[#EAA000] text-[#170515] shadow-md"
+                    : "text-[#A0B0BE] hover:text-[#DDE3E8]"
                 }`}
               >
                 Sign In
@@ -955,8 +1067,10 @@ export default function Dashboard() {
                   setAuthMode("register");
                   setAuthError("");
                 }}
-                className={`flex-1 py-1.5 text-xs font-semibold rounded-lg transition ${
-                  authMode === "register" ? "bg-blue-600 text-white shadow" : "text-slate-400 hover:text-slate-200"
+                className={`flex-1 py-1.5 text-xs font-bold rounded-lg transition ${
+                  authMode === "register"
+                    ? "bg-[#EAA000] text-[#170515] shadow-md"
+                    : "text-[#A0B0BE] hover:text-[#DDE3E8]"
                 }`}
               >
                 Create Account
@@ -964,7 +1078,7 @@ export default function Dashboard() {
             </div>
 
             {authError && (
-              <div className="p-3 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-400 text-xs">
+              <div className="p-3 rounded-xl bg-rose-500/20 border border-rose-500/40 text-rose-300 text-xs">
                 {authError}
               </div>
             )}
@@ -972,33 +1086,33 @@ export default function Dashboard() {
             {/* Form */}
             <form onSubmit={handleAuthSubmit} className="space-y-4">
               <div className="space-y-1.5">
-                <label className="text-xs font-medium text-slate-300 block">Username</label>
+                <label className="text-xs font-semibold text-[#DDE3E8] block">Username</label>
                 <input
                   type="text"
                   required
                   value={authUsername}
                   onChange={(e) => setAuthUsername(e.target.value)}
-                  placeholder="e.g. manoj or pes_student"
-                  className="w-full bg-[#070c18] border border-slate-700/80 rounded-xl px-3.5 py-2.5 text-xs font-mono text-white focus:outline-none focus:border-blue-500"
+                  placeholder="e.g. manoj or pes_demo"
+                  className="w-full bg-[#170515] border border-[#631C5B] rounded-xl px-3.5 py-2.5 text-xs font-mono text-[#DDE3E8] focus:outline-none focus:border-[#EAA000]"
                 />
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-xs font-medium text-slate-300 block">Password</label>
+                <label className="text-xs font-semibold text-[#DDE3E8] block">Password</label>
                 <input
                   type="password"
                   required
                   value={authPassword}
                   onChange={(e) => setAuthPassword(e.target.value)}
                   placeholder="At least 4 characters"
-                  className="w-full bg-[#070c18] border border-slate-700/80 rounded-xl px-3.5 py-2.5 text-xs font-mono text-white focus:outline-none focus:border-blue-500"
+                  className="w-full bg-[#170515] border border-[#631C5B] rounded-xl px-3.5 py-2.5 text-xs font-mono text-[#DDE3E8] focus:outline-none focus:border-[#EAA000]"
                 />
               </div>
 
               <button
                 type="submit"
                 disabled={authLoading}
-                className="w-full py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-medium text-xs shadow-lg shadow-blue-500/25 transition disabled:opacity-50"
+                className="w-full py-2.5 rounded-xl bg-gradient-to-r from-[#EAA000] to-[#FFB526] hover:from-[#FFB526] hover:to-[#EAA000] text-[#170515] font-bold text-xs shadow-lg shadow-[#EAA000]/25 transition disabled:opacity-50"
               >
                 {authLoading
                   ? "Verifying with MongoDB..."
@@ -1009,13 +1123,13 @@ export default function Dashboard() {
             </form>
 
             {/* Quick Demo Login Option */}
-            <div className="pt-2 border-t border-slate-800 text-center">
+            <div className="pt-2 border-t border-[#4D1546] text-center">
               <button
                 type="button"
                 onClick={handleDemoQuickLogin}
-                className="text-xs text-blue-400 hover:text-blue-300 flex items-center justify-center space-x-1.5 mx-auto"
+                className="text-xs text-[#EAA000] hover:underline flex items-center justify-center space-x-1.5 mx-auto font-semibold"
               >
-                <Sparkles className="h-3.5 w-3.5 text-amber-400" />
+                <Sparkles className="h-3.5 w-3.5 text-[#EAA000]" />
                 <span>One-Click Class Demo Login (pes_demo)</span>
               </button>
             </div>
