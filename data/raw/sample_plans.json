@@ -1,0 +1,996 @@
+[
+  {
+    "sql": "SELECT returnflag, linestatus, sum(quantity) as sum_qty, sum(extendedprice) as sum_base_price,\n       avg(quantity) as avg_qty, count(*) as count_order\nFROM lineitem\nWHERE shipdate <= '1998-09-02'\nGROUP BY returnflag, linestatus\nORDER BY returnflag, linestatus;",
+    "plan": {
+      "Plan": {
+        "Node Type": "Sort",
+        "Startup Cost": 3900.0,
+        "Total Cost": 3920.0,
+        "Plan Rows": 100,
+        "Actual Rows": 100,
+        "Actual Total Time": 153.5,
+        "Sort Key": [
+          "returnflag"
+        ],
+        "Sort Space Used": 32,
+        "Sort Space Type": "Memory",
+        "Shared Hit Blocks": 420,
+        "Shared Read Blocks": 1280,
+        "Plans": [
+          {
+            "Node Type": "HashAggregate",
+            "Startup Cost": 3850.0,
+            "Total Cost": 3895.0,
+            "Plan Rows": 100,
+            "Actual Rows": 100,
+            "Actual Total Time": 150.3,
+            "Shared Hit Blocks": 420,
+            "Shared Read Blocks": 1280,
+            "Plans": [
+              {
+                "Node Type": "Seq Scan",
+                "Relation Name": "lineitem",
+                "Startup Cost": 0.0,
+                "Total Cost": 3850.0,
+                "Plan Rows": 1500,
+                "Actual Rows": 1500,
+                "Actual Total Time": 145.8,
+                "Rows Removed by Filter": 98500,
+                "Filter": "(shipdate <= '1998-09-02')",
+                "Shared Hit Blocks": 420,
+                "Shared Read Blocks": 1280
+              }
+            ]
+          }
+        ]
+      },
+      "Planning Time": 0.35,
+      "Execution Time": 151.058
+    },
+    "actual_ms": 151.058
+  },
+  {
+    "sql": "SELECT l_orderkey, sum(l_extendedprice * (1 - l_discount)) as revenue, o_orderdate, o_shippriority\nFROM customer JOIN orders ON c_custkey = o_custkey JOIN lineitem ON l_orderkey = o_orderkey\nWHERE c_mktsegment = 'FURNITURE' AND o_orderdate < '1995-03-15' AND l_shipdate > '1995-03-15'\nGROUP BY l_orderkey, o_orderdate, o_shippriority\nORDER BY revenue DESC\nLIMIT 10;",
+    "plan": {
+      "Plan": {
+        "Node Type": "Sort",
+        "Startup Cost": 4870.0,
+        "Total Cost": 4890.0,
+        "Plan Rows": 100,
+        "Actual Rows": 100,
+        "Actual Total Time": 203.5,
+        "Sort Key": [
+          "revenue"
+        ],
+        "Sort Space Used": 32,
+        "Sort Space Type": "Memory",
+        "Shared Hit Blocks": 530,
+        "Shared Read Blocks": 1325,
+        "Plans": [
+          {
+            "Node Type": "HashAggregate",
+            "Startup Cost": 4820.0,
+            "Total Cost": 4865.0,
+            "Plan Rows": 100,
+            "Actual Rows": 100,
+            "Actual Total Time": 200.3,
+            "Shared Hit Blocks": 530,
+            "Shared Read Blocks": 1325,
+            "Plans": [
+              {
+                "Node Type": "Nested Loop",
+                "Startup Cost": 10.0,
+                "Total Cost": 4820.0,
+                "Plan Rows": 1500,
+                "Actual Rows": 1500,
+                "Actual Total Time": 195.8,
+                "Shared Hit Blocks": 530,
+                "Shared Read Blocks": 1325,
+                "Plans": [
+                  {
+                    "Node Type": "Seq Scan",
+                    "Relation Name": "customer",
+                    "Startup Cost": 0.0,
+                    "Total Cost": 3850.0,
+                    "Plan Rows": 1500,
+                    "Actual Rows": 1500,
+                    "Actual Total Time": 145.8,
+                    "Rows Removed by Filter": 98500,
+                    "Filter": "(c_mktsegment = 'FURNITURE' AND o_orderdate < '1995-03-15' AND l_shipdate > '1995-03-15')",
+                    "Shared Hit Blocks": 420,
+                    "Shared Read Blocks": 1280
+                  },
+                  {
+                    "Node Type": "Seq Scan",
+                    "Relation Name": "orders",
+                    "Startup Cost": 0.0,
+                    "Total Cost": 850.0,
+                    "Plan Rows": 500,
+                    "Actual Rows": 500,
+                    "Actual Total Time": 35.0,
+                    "Rows Removed by Filter": 12000,
+                    "Filter": "(orders_active = true)",
+                    "Shared Hit Blocks": 110,
+                    "Shared Read Blocks": 45
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "Planning Time": 0.35,
+      "Execution Time": 215.41
+    },
+    "actual_ms": 215.41
+  },
+  {
+    "sql": "SELECT sum(extendedprice * discount) as revenue\nFROM lineitem\nWHERE shipdate >= '1994-01-01' AND shipdate < '1995-01-01'\n  AND discount BETWEEN 0.05 AND 0.07 AND quantity < 24;",
+    "plan": {
+      "Plan": {
+        "Node Type": "Seq Scan",
+        "Relation Name": "lineitem",
+        "Startup Cost": 0.0,
+        "Total Cost": 3850.0,
+        "Plan Rows": 1500,
+        "Actual Rows": 1500,
+        "Actual Total Time": 145.8,
+        "Rows Removed by Filter": 98500,
+        "Filter": "(shipdate >= '1994-01-01' AND shipdate < '1995-01-01'\n  AND discount BETWEEN 0.05 AND 0.07 AND quantity < 24)",
+        "Shared Hit Blocks": 420,
+        "Shared Read Blocks": 1280
+      },
+      "Planning Time": 0.35,
+      "Execution Time": 162.929
+    },
+    "actual_ms": 162.929
+  },
+  {
+    "sql": "SELECT c_custkey, c_name, sum(l_extendedprice * (1 - l_discount)) as revenue, c_acctbal, n_name, c_address, c_phone, c_comment\nFROM customer JOIN orders ON c_custkey = o_custkey JOIN lineitem ON l_orderkey = o_orderkey JOIN nation ON c_nationkey = n_nationkey\nWHERE o_orderdate >= '1993-10-01' AND o_orderdate < '1994-01-01' AND l_returnflag = 'R'\nGROUP BY c_custkey, c_name, c_acctbal, c_phone, n_name, c_address, c_comment\nORDER BY revenue DESC\nLIMIT 20;",
+    "plan": {
+      "Plan": {
+        "Node Type": "Sort",
+        "Startup Cost": 4870.0,
+        "Total Cost": 4890.0,
+        "Plan Rows": 100,
+        "Actual Rows": 100,
+        "Actual Total Time": 203.5,
+        "Sort Key": [
+          "revenue"
+        ],
+        "Sort Space Used": 32,
+        "Sort Space Type": "Memory",
+        "Shared Hit Blocks": 530,
+        "Shared Read Blocks": 1325,
+        "Plans": [
+          {
+            "Node Type": "HashAggregate",
+            "Startup Cost": 4820.0,
+            "Total Cost": 4865.0,
+            "Plan Rows": 100,
+            "Actual Rows": 100,
+            "Actual Total Time": 200.3,
+            "Shared Hit Blocks": 530,
+            "Shared Read Blocks": 1325,
+            "Plans": [
+              {
+                "Node Type": "Nested Loop",
+                "Startup Cost": 10.0,
+                "Total Cost": 4820.0,
+                "Plan Rows": 1500,
+                "Actual Rows": 1500,
+                "Actual Total Time": 195.8,
+                "Shared Hit Blocks": 530,
+                "Shared Read Blocks": 1325,
+                "Plans": [
+                  {
+                    "Node Type": "Seq Scan",
+                    "Relation Name": "customer",
+                    "Startup Cost": 0.0,
+                    "Total Cost": 3850.0,
+                    "Plan Rows": 1500,
+                    "Actual Rows": 1500,
+                    "Actual Total Time": 145.8,
+                    "Rows Removed by Filter": 98500,
+                    "Filter": "(o_orderdate >= '1993-10-01' AND o_orderdate < '1994-01-01' AND l_returnflag = 'R')",
+                    "Shared Hit Blocks": 420,
+                    "Shared Read Blocks": 1280
+                  },
+                  {
+                    "Node Type": "Seq Scan",
+                    "Relation Name": "orders",
+                    "Startup Cost": 0.0,
+                    "Total Cost": 850.0,
+                    "Plan Rows": 500,
+                    "Actual Rows": 500,
+                    "Actual Total Time": 35.0,
+                    "Rows Removed by Filter": 12000,
+                    "Filter": "(orders_active = true)",
+                    "Shared Hit Blocks": 110,
+                    "Shared Read Blocks": 45
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "Planning Time": 0.35,
+      "Execution Time": 173.948
+    },
+    "actual_ms": 173.948
+  },
+  {
+    "sql": "SELECT * FROM customer WHERE c_custkey = 354;",
+    "plan": {
+      "Plan": {
+        "Node Type": "Index Scan",
+        "Relation Name": "customer",
+        "Index Name": "customer_pkey",
+        "Startup Cost": 0.28,
+        "Total Cost": 8.3,
+        "Plan Rows": 1,
+        "Actual Rows": 1,
+        "Actual Total Time": 0.42,
+        "Index Cond": "(c_custkey = 354)",
+        "Shared Hit Blocks": 3,
+        "Shared Read Blocks": 0
+      },
+      "Planning Time": 0.35,
+      "Execution Time": 0.445
+    },
+    "actual_ms": 0.445
+  },
+  {
+    "sql": "SELECT * FROM orders WHERE o_orderkey = 314460;",
+    "plan": {
+      "Plan": {
+        "Node Type": "Index Scan",
+        "Relation Name": "orders",
+        "Index Name": "orders_pkey",
+        "Startup Cost": 0.28,
+        "Total Cost": 8.3,
+        "Plan Rows": 1,
+        "Actual Rows": 1,
+        "Actual Total Time": 0.42,
+        "Index Cond": "(o_orderkey = 314460)",
+        "Shared Hit Blocks": 3,
+        "Shared Read Blocks": 0
+      },
+      "Planning Time": 0.35,
+      "Execution Time": 0.372
+    },
+    "actual_ms": 0.372
+  },
+  {
+    "sql": "SELECT * FROM lineitem WHERE l_orderkey = 1290 AND l_linenumber = 1;",
+    "plan": {
+      "Plan": {
+        "Node Type": "Index Scan",
+        "Relation Name": "lineitem",
+        "Index Name": "lineitem_pkey",
+        "Startup Cost": 0.28,
+        "Total Cost": 8.3,
+        "Plan Rows": 1,
+        "Actual Rows": 1,
+        "Actual Total Time": 0.42,
+        "Index Cond": "(l_orderkey = 1290 AND l_linenumber = 1)",
+        "Shared Hit Blocks": 3,
+        "Shared Read Blocks": 0
+      },
+      "Planning Time": 0.35,
+      "Execution Time": 0.422
+    },
+    "actual_ms": 0.422
+  },
+  {
+    "sql": "SELECT id, customer_id, total_amount, status, created_at\nFROM orders\nWHERE status = 'COMPLETED' AND created_at >= '2024-01-01'\nORDER BY created_at DESC;",
+    "plan": {
+      "Plan": {
+        "Node Type": "Sort",
+        "Startup Cost": 3855.0,
+        "Total Cost": 3875.0,
+        "Plan Rows": 1500,
+        "Actual Rows": 1500,
+        "Actual Total Time": 149.0,
+        "Sort Key": [
+          "created_at"
+        ],
+        "Sort Space Used": 32,
+        "Sort Space Type": "Memory",
+        "Shared Hit Blocks": 420,
+        "Shared Read Blocks": 1280,
+        "Plans": [
+          {
+            "Node Type": "Seq Scan",
+            "Relation Name": "orders",
+            "Startup Cost": 0.0,
+            "Total Cost": 3850.0,
+            "Plan Rows": 1500,
+            "Actual Rows": 1500,
+            "Actual Total Time": 145.8,
+            "Rows Removed by Filter": 98500,
+            "Filter": "(status = 'COMPLETED' AND created_at >= '2024-01-01')",
+            "Shared Hit Blocks": 420,
+            "Shared Read Blocks": 1280
+          }
+        ]
+      },
+      "Planning Time": 0.35,
+      "Execution Time": 170.208
+    },
+    "actual_ms": 170.208
+  },
+  {
+    "sql": "SELECT p.id, p.name, p.price, p.stock\nFROM products p\nWHERE p.category_id = 15 AND p.price > 500.00;",
+    "plan": {
+      "Plan": {
+        "Node Type": "Index Scan",
+        "Relation Name": "products",
+        "Index Name": "products_pkey",
+        "Startup Cost": 0.28,
+        "Total Cost": 8.3,
+        "Plan Rows": 1,
+        "Actual Rows": 1,
+        "Actual Total Time": 0.42,
+        "Index Cond": "(p.category_id = 15 AND p.price > 500.00)",
+        "Shared Hit Blocks": 3,
+        "Shared Read Blocks": 0
+      },
+      "Planning Time": 0.35,
+      "Execution Time": 0.454
+    },
+    "actual_ms": 0.454
+  },
+  {
+    "sql": "SELECT r.product_id, avg(r.rating) as avg_rating, count(*) as total_reviews\nFROM reviews r\nWHERE r.is_verified = true\nGROUP BY r.product_id\nHAVING count(*) > 50;",
+    "plan": {
+      "Plan": {
+        "Node Type": "HashAggregate",
+        "Startup Cost": 3850.0,
+        "Total Cost": 3895.0,
+        "Plan Rows": 100,
+        "Actual Rows": 100,
+        "Actual Total Time": 150.3,
+        "Shared Hit Blocks": 420,
+        "Shared Read Blocks": 1280,
+        "Plans": [
+          {
+            "Node Type": "Seq Scan",
+            "Relation Name": "reviews",
+            "Startup Cost": 0.0,
+            "Total Cost": 3850.0,
+            "Plan Rows": 1500,
+            "Actual Rows": 1500,
+            "Actual Total Time": 145.8,
+            "Rows Removed by Filter": 98500,
+            "Filter": "(r.is_verified = true)",
+            "Shared Hit Blocks": 420,
+            "Shared Read Blocks": 1280
+          }
+        ]
+      },
+      "Planning Time": 0.35,
+      "Execution Time": 142.86
+    },
+    "actual_ms": 142.86
+  },
+  {
+    "sql": "SELECT returnflag, linestatus, sum(quantity) as sum_qty, sum(extendedprice) as sum_base_price,\n       avg(quantity) as avg_qty, count(*) as count_order\nFROM lineitem\nWHERE shipdate <= '1998-09-02'\nGROUP BY returnflag, linestatus\nORDER BY returnflag, linestatus;",
+    "plan": {
+      "Plan": {
+        "Node Type": "Sort",
+        "Startup Cost": 3900.0,
+        "Total Cost": 3920.0,
+        "Plan Rows": 100,
+        "Actual Rows": 100,
+        "Actual Total Time": 153.5,
+        "Sort Key": [
+          "returnflag"
+        ],
+        "Sort Space Used": 32,
+        "Sort Space Type": "Memory",
+        "Shared Hit Blocks": 420,
+        "Shared Read Blocks": 1280,
+        "Plans": [
+          {
+            "Node Type": "HashAggregate",
+            "Startup Cost": 3850.0,
+            "Total Cost": 3895.0,
+            "Plan Rows": 100,
+            "Actual Rows": 100,
+            "Actual Total Time": 150.3,
+            "Shared Hit Blocks": 420,
+            "Shared Read Blocks": 1280,
+            "Plans": [
+              {
+                "Node Type": "Seq Scan",
+                "Relation Name": "lineitem",
+                "Startup Cost": 0.0,
+                "Total Cost": 3850.0,
+                "Plan Rows": 1500,
+                "Actual Rows": 1500,
+                "Actual Total Time": 145.8,
+                "Rows Removed by Filter": 98500,
+                "Filter": "(shipdate <= '1998-09-02')",
+                "Shared Hit Blocks": 420,
+                "Shared Read Blocks": 1280
+              }
+            ]
+          }
+        ]
+      },
+      "Planning Time": 0.35,
+      "Execution Time": 158.693
+    },
+    "actual_ms": 158.693
+  },
+  {
+    "sql": "SELECT l_orderkey, sum(l_extendedprice * (1 - l_discount)) as revenue, o_orderdate, o_shippriority\nFROM customer JOIN orders ON c_custkey = o_custkey JOIN lineitem ON l_orderkey = o_orderkey\nWHERE c_mktsegment = 'AUTOMOBILE' AND o_orderdate < '1995-03-15' AND l_shipdate > '1995-03-15'\nGROUP BY l_orderkey, o_orderdate, o_shippriority\nORDER BY revenue DESC\nLIMIT 10;",
+    "plan": {
+      "Plan": {
+        "Node Type": "Sort",
+        "Startup Cost": 4870.0,
+        "Total Cost": 4890.0,
+        "Plan Rows": 100,
+        "Actual Rows": 100,
+        "Actual Total Time": 203.5,
+        "Sort Key": [
+          "revenue"
+        ],
+        "Sort Space Used": 32,
+        "Sort Space Type": "Memory",
+        "Shared Hit Blocks": 530,
+        "Shared Read Blocks": 1325,
+        "Plans": [
+          {
+            "Node Type": "HashAggregate",
+            "Startup Cost": 4820.0,
+            "Total Cost": 4865.0,
+            "Plan Rows": 100,
+            "Actual Rows": 100,
+            "Actual Total Time": 200.3,
+            "Shared Hit Blocks": 530,
+            "Shared Read Blocks": 1325,
+            "Plans": [
+              {
+                "Node Type": "Nested Loop",
+                "Startup Cost": 10.0,
+                "Total Cost": 4820.0,
+                "Plan Rows": 1500,
+                "Actual Rows": 1500,
+                "Actual Total Time": 195.8,
+                "Shared Hit Blocks": 530,
+                "Shared Read Blocks": 1325,
+                "Plans": [
+                  {
+                    "Node Type": "Seq Scan",
+                    "Relation Name": "customer",
+                    "Startup Cost": 0.0,
+                    "Total Cost": 3850.0,
+                    "Plan Rows": 1500,
+                    "Actual Rows": 1500,
+                    "Actual Total Time": 145.8,
+                    "Rows Removed by Filter": 98500,
+                    "Filter": "(c_mktsegment = 'AUTOMOBILE' AND o_orderdate < '1995-03-15' AND l_shipdate > '1995-03-15')",
+                    "Shared Hit Blocks": 420,
+                    "Shared Read Blocks": 1280
+                  },
+                  {
+                    "Node Type": "Seq Scan",
+                    "Relation Name": "orders",
+                    "Startup Cost": 0.0,
+                    "Total Cost": 850.0,
+                    "Plan Rows": 500,
+                    "Actual Rows": 500,
+                    "Actual Total Time": 35.0,
+                    "Rows Removed by Filter": 12000,
+                    "Filter": "(orders_active = true)",
+                    "Shared Hit Blocks": 110,
+                    "Shared Read Blocks": 45
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "Planning Time": 0.35,
+      "Execution Time": 175.764
+    },
+    "actual_ms": 175.764
+  },
+  {
+    "sql": "SELECT sum(extendedprice * discount) as revenue\nFROM lineitem\nWHERE shipdate >= '1994-01-01' AND shipdate < '1995-01-01'\n  AND discount BETWEEN 0.05 AND 0.07 AND quantity < 24;",
+    "plan": {
+      "Plan": {
+        "Node Type": "Seq Scan",
+        "Relation Name": "lineitem",
+        "Startup Cost": 0.0,
+        "Total Cost": 3850.0,
+        "Plan Rows": 1500,
+        "Actual Rows": 1500,
+        "Actual Total Time": 145.8,
+        "Rows Removed by Filter": 98500,
+        "Filter": "(shipdate >= '1994-01-01' AND shipdate < '1995-01-01'\n  AND discount BETWEEN 0.05 AND 0.07 AND quantity < 24)",
+        "Shared Hit Blocks": 420,
+        "Shared Read Blocks": 1280
+      },
+      "Planning Time": 0.35,
+      "Execution Time": 178.353
+    },
+    "actual_ms": 178.353
+  },
+  {
+    "sql": "SELECT c_custkey, c_name, sum(l_extendedprice * (1 - l_discount)) as revenue, c_acctbal, n_name, c_address, c_phone, c_comment\nFROM customer JOIN orders ON c_custkey = o_custkey JOIN lineitem ON l_orderkey = o_orderkey JOIN nation ON c_nationkey = n_nationkey\nWHERE o_orderdate >= '1993-10-01' AND o_orderdate < '1994-01-01' AND l_returnflag = 'R'\nGROUP BY c_custkey, c_name, c_acctbal, c_phone, n_name, c_address, c_comment\nORDER BY revenue DESC\nLIMIT 20;",
+    "plan": {
+      "Plan": {
+        "Node Type": "Sort",
+        "Startup Cost": 4870.0,
+        "Total Cost": 4890.0,
+        "Plan Rows": 100,
+        "Actual Rows": 100,
+        "Actual Total Time": 203.5,
+        "Sort Key": [
+          "revenue"
+        ],
+        "Sort Space Used": 32,
+        "Sort Space Type": "Memory",
+        "Shared Hit Blocks": 530,
+        "Shared Read Blocks": 1325,
+        "Plans": [
+          {
+            "Node Type": "HashAggregate",
+            "Startup Cost": 4820.0,
+            "Total Cost": 4865.0,
+            "Plan Rows": 100,
+            "Actual Rows": 100,
+            "Actual Total Time": 200.3,
+            "Shared Hit Blocks": 530,
+            "Shared Read Blocks": 1325,
+            "Plans": [
+              {
+                "Node Type": "Nested Loop",
+                "Startup Cost": 10.0,
+                "Total Cost": 4820.0,
+                "Plan Rows": 1500,
+                "Actual Rows": 1500,
+                "Actual Total Time": 195.8,
+                "Shared Hit Blocks": 530,
+                "Shared Read Blocks": 1325,
+                "Plans": [
+                  {
+                    "Node Type": "Seq Scan",
+                    "Relation Name": "customer",
+                    "Startup Cost": 0.0,
+                    "Total Cost": 3850.0,
+                    "Plan Rows": 1500,
+                    "Actual Rows": 1500,
+                    "Actual Total Time": 145.8,
+                    "Rows Removed by Filter": 98500,
+                    "Filter": "(o_orderdate >= '1993-10-01' AND o_orderdate < '1994-01-01' AND l_returnflag = 'R')",
+                    "Shared Hit Blocks": 420,
+                    "Shared Read Blocks": 1280
+                  },
+                  {
+                    "Node Type": "Seq Scan",
+                    "Relation Name": "orders",
+                    "Startup Cost": 0.0,
+                    "Total Cost": 850.0,
+                    "Plan Rows": 500,
+                    "Actual Rows": 500,
+                    "Actual Total Time": 35.0,
+                    "Rows Removed by Filter": 12000,
+                    "Filter": "(orders_active = true)",
+                    "Shared Hit Blocks": 110,
+                    "Shared Read Blocks": 45
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "Planning Time": 0.35,
+      "Execution Time": 182.9
+    },
+    "actual_ms": 182.9
+  },
+  {
+    "sql": "SELECT * FROM customer WHERE c_custkey = 1114;",
+    "plan": {
+      "Plan": {
+        "Node Type": "Index Scan",
+        "Relation Name": "customer",
+        "Index Name": "customer_pkey",
+        "Startup Cost": 0.28,
+        "Total Cost": 8.3,
+        "Plan Rows": 1,
+        "Actual Rows": 1,
+        "Actual Total Time": 0.42,
+        "Index Cond": "(c_custkey = 1114)",
+        "Shared Hit Blocks": 3,
+        "Shared Read Blocks": 0
+      },
+      "Planning Time": 0.35,
+      "Execution Time": 0.395
+    },
+    "actual_ms": 0.395
+  },
+  {
+    "sql": "SELECT * FROM orders WHERE o_orderkey = 296211;",
+    "plan": {
+      "Plan": {
+        "Node Type": "Index Scan",
+        "Relation Name": "orders",
+        "Index Name": "orders_pkey",
+        "Startup Cost": 0.28,
+        "Total Cost": 8.3,
+        "Plan Rows": 1,
+        "Actual Rows": 1,
+        "Actual Total Time": 0.42,
+        "Index Cond": "(o_orderkey = 296211)",
+        "Shared Hit Blocks": 3,
+        "Shared Read Blocks": 0
+      },
+      "Planning Time": 0.35,
+      "Execution Time": 0.41
+    },
+    "actual_ms": 0.41
+  },
+  {
+    "sql": "SELECT * FROM lineitem WHERE l_orderkey = 1290 AND l_linenumber = 1;",
+    "plan": {
+      "Plan": {
+        "Node Type": "Index Scan",
+        "Relation Name": "lineitem",
+        "Index Name": "lineitem_pkey",
+        "Startup Cost": 0.28,
+        "Total Cost": 8.3,
+        "Plan Rows": 1,
+        "Actual Rows": 1,
+        "Actual Total Time": 0.42,
+        "Index Cond": "(l_orderkey = 1290 AND l_linenumber = 1)",
+        "Shared Hit Blocks": 3,
+        "Shared Read Blocks": 0
+      },
+      "Planning Time": 0.35,
+      "Execution Time": 0.425
+    },
+    "actual_ms": 0.425
+  },
+  {
+    "sql": "SELECT id, customer_id, total_amount, status, created_at\nFROM orders\nWHERE status = 'PROCESSING' AND created_at >= '2024-01-01'\nORDER BY created_at DESC;",
+    "plan": {
+      "Plan": {
+        "Node Type": "Sort",
+        "Startup Cost": 3855.0,
+        "Total Cost": 3875.0,
+        "Plan Rows": 1500,
+        "Actual Rows": 1500,
+        "Actual Total Time": 149.0,
+        "Sort Key": [
+          "created_at"
+        ],
+        "Sort Space Used": 32,
+        "Sort Space Type": "Memory",
+        "Shared Hit Blocks": 420,
+        "Shared Read Blocks": 1280,
+        "Plans": [
+          {
+            "Node Type": "Seq Scan",
+            "Relation Name": "orders",
+            "Startup Cost": 0.0,
+            "Total Cost": 3850.0,
+            "Plan Rows": 1500,
+            "Actual Rows": 1500,
+            "Actual Total Time": 145.8,
+            "Rows Removed by Filter": 98500,
+            "Filter": "(status = 'PROCESSING' AND created_at >= '2024-01-01')",
+            "Shared Hit Blocks": 420,
+            "Shared Read Blocks": 1280
+          }
+        ]
+      },
+      "Planning Time": 0.35,
+      "Execution Time": 152.977
+    },
+    "actual_ms": 152.977
+  },
+  {
+    "sql": "SELECT p.id, p.name, p.price, p.stock\nFROM products p\nWHERE p.category_id = 15 AND p.price > 500.00;",
+    "plan": {
+      "Plan": {
+        "Node Type": "Index Scan",
+        "Relation Name": "products",
+        "Index Name": "products_pkey",
+        "Startup Cost": 0.28,
+        "Total Cost": 8.3,
+        "Plan Rows": 1,
+        "Actual Rows": 1,
+        "Actual Total Time": 0.42,
+        "Index Cond": "(p.category_id = 15 AND p.price > 500.00)",
+        "Shared Hit Blocks": 3,
+        "Shared Read Blocks": 0
+      },
+      "Planning Time": 0.35,
+      "Execution Time": 0.385
+    },
+    "actual_ms": 0.385
+  },
+  {
+    "sql": "SELECT r.product_id, avg(r.rating) as avg_rating, count(*) as total_reviews\nFROM reviews r\nWHERE r.is_verified = true\nGROUP BY r.product_id\nHAVING count(*) > 50;",
+    "plan": {
+      "Plan": {
+        "Node Type": "HashAggregate",
+        "Startup Cost": 3850.0,
+        "Total Cost": 3895.0,
+        "Plan Rows": 100,
+        "Actual Rows": 100,
+        "Actual Total Time": 150.3,
+        "Shared Hit Blocks": 420,
+        "Shared Read Blocks": 1280,
+        "Plans": [
+          {
+            "Node Type": "Seq Scan",
+            "Relation Name": "reviews",
+            "Startup Cost": 0.0,
+            "Total Cost": 3850.0,
+            "Plan Rows": 1500,
+            "Actual Rows": 1500,
+            "Actual Total Time": 145.8,
+            "Rows Removed by Filter": 98500,
+            "Filter": "(r.is_verified = true)",
+            "Shared Hit Blocks": 420,
+            "Shared Read Blocks": 1280
+          }
+        ]
+      },
+      "Planning Time": 0.35,
+      "Execution Time": 147.457
+    },
+    "actual_ms": 147.457
+  },
+  {
+    "sql": "SELECT returnflag, linestatus, sum(quantity) as sum_qty, sum(extendedprice) as sum_base_price,\n       avg(quantity) as avg_qty, count(*) as count_order\nFROM lineitem\nWHERE shipdate <= '1998-09-02'\nGROUP BY returnflag, linestatus\nORDER BY returnflag, linestatus;",
+    "plan": {
+      "Plan": {
+        "Node Type": "Sort",
+        "Startup Cost": 3900.0,
+        "Total Cost": 3920.0,
+        "Plan Rows": 100,
+        "Actual Rows": 100,
+        "Actual Total Time": 153.5,
+        "Sort Key": [
+          "returnflag"
+        ],
+        "Sort Space Used": 32,
+        "Sort Space Type": "Memory",
+        "Shared Hit Blocks": 420,
+        "Shared Read Blocks": 1280,
+        "Plans": [
+          {
+            "Node Type": "HashAggregate",
+            "Startup Cost": 3850.0,
+            "Total Cost": 3895.0,
+            "Plan Rows": 100,
+            "Actual Rows": 100,
+            "Actual Total Time": 150.3,
+            "Shared Hit Blocks": 420,
+            "Shared Read Blocks": 1280,
+            "Plans": [
+              {
+                "Node Type": "Seq Scan",
+                "Relation Name": "lineitem",
+                "Startup Cost": 0.0,
+                "Total Cost": 3850.0,
+                "Plan Rows": 1500,
+                "Actual Rows": 1500,
+                "Actual Total Time": 145.8,
+                "Rows Removed by Filter": 98500,
+                "Filter": "(shipdate <= '1998-09-02')",
+                "Shared Hit Blocks": 420,
+                "Shared Read Blocks": 1280
+              }
+            ]
+          }
+        ]
+      },
+      "Planning Time": 0.35,
+      "Execution Time": 142.886
+    },
+    "actual_ms": 142.886
+  },
+  {
+    "sql": "SELECT l_orderkey, sum(l_extendedprice * (1 - l_discount)) as revenue, o_orderdate, o_shippriority\nFROM customer JOIN orders ON c_custkey = o_custkey JOIN lineitem ON l_orderkey = o_orderkey\nWHERE c_mktsegment = 'BUILDING' AND o_orderdate < '1995-03-15' AND l_shipdate > '1995-03-15'\nGROUP BY l_orderkey, o_orderdate, o_shippriority\nORDER BY revenue DESC\nLIMIT 10;",
+    "plan": {
+      "Plan": {
+        "Node Type": "Sort",
+        "Startup Cost": 4870.0,
+        "Total Cost": 4890.0,
+        "Plan Rows": 100,
+        "Actual Rows": 100,
+        "Actual Total Time": 203.5,
+        "Sort Key": [
+          "revenue"
+        ],
+        "Sort Space Used": 32,
+        "Sort Space Type": "Memory",
+        "Shared Hit Blocks": 530,
+        "Shared Read Blocks": 1325,
+        "Plans": [
+          {
+            "Node Type": "HashAggregate",
+            "Startup Cost": 4820.0,
+            "Total Cost": 4865.0,
+            "Plan Rows": 100,
+            "Actual Rows": 100,
+            "Actual Total Time": 200.3,
+            "Shared Hit Blocks": 530,
+            "Shared Read Blocks": 1325,
+            "Plans": [
+              {
+                "Node Type": "Nested Loop",
+                "Startup Cost": 10.0,
+                "Total Cost": 4820.0,
+                "Plan Rows": 1500,
+                "Actual Rows": 1500,
+                "Actual Total Time": 195.8,
+                "Shared Hit Blocks": 530,
+                "Shared Read Blocks": 1325,
+                "Plans": [
+                  {
+                    "Node Type": "Seq Scan",
+                    "Relation Name": "customer",
+                    "Startup Cost": 0.0,
+                    "Total Cost": 3850.0,
+                    "Plan Rows": 1500,
+                    "Actual Rows": 1500,
+                    "Actual Total Time": 145.8,
+                    "Rows Removed by Filter": 98500,
+                    "Filter": "(c_mktsegment = 'BUILDING' AND o_orderdate < '1995-03-15' AND l_shipdate > '1995-03-15')",
+                    "Shared Hit Blocks": 420,
+                    "Shared Read Blocks": 1280
+                  },
+                  {
+                    "Node Type": "Seq Scan",
+                    "Relation Name": "orders",
+                    "Startup Cost": 0.0,
+                    "Total Cost": 850.0,
+                    "Plan Rows": 500,
+                    "Actual Rows": 500,
+                    "Actual Total Time": 35.0,
+                    "Rows Removed by Filter": 12000,
+                    "Filter": "(orders_active = true)",
+                    "Shared Hit Blocks": 110,
+                    "Shared Read Blocks": 45
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "Planning Time": 0.35,
+      "Execution Time": 231.918
+    },
+    "actual_ms": 231.918
+  },
+  {
+    "sql": "SELECT sum(extendedprice * discount) as revenue\nFROM lineitem\nWHERE shipdate >= '1994-01-01' AND shipdate < '1995-01-01'\n  AND discount BETWEEN 0.05 AND 0.07 AND quantity < 24;",
+    "plan": {
+      "Plan": {
+        "Node Type": "Seq Scan",
+        "Relation Name": "lineitem",
+        "Startup Cost": 0.0,
+        "Total Cost": 3850.0,
+        "Plan Rows": 1500,
+        "Actual Rows": 1500,
+        "Actual Total Time": 145.8,
+        "Rows Removed by Filter": 98500,
+        "Filter": "(shipdate >= '1994-01-01' AND shipdate < '1995-01-01'\n  AND discount BETWEEN 0.05 AND 0.07 AND quantity < 24)",
+        "Shared Hit Blocks": 420,
+        "Shared Read Blocks": 1280
+      },
+      "Planning Time": 0.35,
+      "Execution Time": 173.026
+    },
+    "actual_ms": 173.026
+  },
+  {
+    "sql": "SELECT c_custkey, c_name, sum(l_extendedprice * (1 - l_discount)) as revenue, c_acctbal, n_name, c_address, c_phone, c_comment\nFROM customer JOIN orders ON c_custkey = o_custkey JOIN lineitem ON l_orderkey = o_orderkey JOIN nation ON c_nationkey = n_nationkey\nWHERE o_orderdate >= '1993-10-01' AND o_orderdate < '1994-01-01' AND l_returnflag = 'R'\nGROUP BY c_custkey, c_name, c_acctbal, c_phone, n_name, c_address, c_comment\nORDER BY revenue DESC\nLIMIT 20;",
+    "plan": {
+      "Plan": {
+        "Node Type": "Sort",
+        "Startup Cost": 4870.0,
+        "Total Cost": 4890.0,
+        "Plan Rows": 100,
+        "Actual Rows": 100,
+        "Actual Total Time": 203.5,
+        "Sort Key": [
+          "revenue"
+        ],
+        "Sort Space Used": 32,
+        "Sort Space Type": "Memory",
+        "Shared Hit Blocks": 530,
+        "Shared Read Blocks": 1325,
+        "Plans": [
+          {
+            "Node Type": "HashAggregate",
+            "Startup Cost": 4820.0,
+            "Total Cost": 4865.0,
+            "Plan Rows": 100,
+            "Actual Rows": 100,
+            "Actual Total Time": 200.3,
+            "Shared Hit Blocks": 530,
+            "Shared Read Blocks": 1325,
+            "Plans": [
+              {
+                "Node Type": "Nested Loop",
+                "Startup Cost": 10.0,
+                "Total Cost": 4820.0,
+                "Plan Rows": 1500,
+                "Actual Rows": 1500,
+                "Actual Total Time": 195.8,
+                "Shared Hit Blocks": 530,
+                "Shared Read Blocks": 1325,
+                "Plans": [
+                  {
+                    "Node Type": "Seq Scan",
+                    "Relation Name": "customer",
+                    "Startup Cost": 0.0,
+                    "Total Cost": 3850.0,
+                    "Plan Rows": 1500,
+                    "Actual Rows": 1500,
+                    "Actual Total Time": 145.8,
+                    "Rows Removed by Filter": 98500,
+                    "Filter": "(o_orderdate >= '1993-10-01' AND o_orderdate < '1994-01-01' AND l_returnflag = 'R')",
+                    "Shared Hit Blocks": 420,
+                    "Shared Read Blocks": 1280
+                  },
+                  {
+                    "Node Type": "Seq Scan",
+                    "Relation Name": "orders",
+                    "Startup Cost": 0.0,
+                    "Total Cost": 850.0,
+                    "Plan Rows": 500,
+                    "Actual Rows": 500,
+                    "Actual Total Time": 35.0,
+                    "Rows Removed by Filter": 12000,
+                    "Filter": "(orders_active = true)",
+                    "Shared Hit Blocks": 110,
+                    "Shared Read Blocks": 45
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "Planning Time": 0.35,
+      "Execution Time": 196.328
+    },
+    "actual_ms": 196.328
+  },
+  {
+    "sql": "SELECT * FROM customer WHERE c_custkey = 1751;",
+    "plan": {
+      "Plan": {
+        "Node Type": "Index Scan",
+        "Relation Name": "customer",
+        "Index Name": "customer_pkey",
+        "Startup Cost": 0.28,
+        "Total Cost": 8.3,
+        "Plan Rows": 1,
+        "Actual Rows": 1,
+        "Actual Total Time": 0.42,
+        "Index Cond": "(c_custkey = 1751)",
+        "Shared Hit Blocks": 3,
+        "Shared Read Blocks": 0
+      },
+      "Planning Time": 0.35,
+      "Execution Time": 0.491
+    },
+    "actual_ms": 0.491
+  }
+]

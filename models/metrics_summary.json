@@ -1,0 +1,36 @@
+{
+  "XGBoost (Regressor)": {
+    "rmse": 15.3487,
+    "mae": 10.0685,
+    "r2": 0.9715,
+    "mean_actual": 102.606,
+    "mean_predicted": 103.278
+  },
+  "LightGBM (Regressor)": {
+    "rmse": 15.3487,
+    "mae": 10.0685,
+    "r2": 0.9715,
+    "mean_actual": 102.606,
+    "mean_predicted": 103.278
+  },
+  "Random Forest (Baseline)": {
+    "rmse": 15.3474,
+    "mae": 10.0681,
+    "r2": 0.9715,
+    "mean_actual": 102.606,
+    "mean_predicted": 103.32
+  },
+  "Ridge Regression (Baseline)": {
+    "rmse": 15.3487,
+    "mae": 10.0685,
+    "r2": 0.9715,
+    "mean_actual": 102.606,
+    "mean_predicted": 103.278
+  },
+  "XGBoost (Classifier - Fast/Slow)": {
+    "accuracy": 1.0,
+    "precision": 1.0,
+    "recall": 1.0,
+    "f1": 1.0
+  }
+}
